@@ -704,32 +704,43 @@ EOF
 sub loadFile
 {
     my( $filename ) = (@_);
+
+    # ensure we received a logfile.
     die "No filename...." if ( ! defined( $filename ) );
 
-    if ( $filename =~ /.gz$/i )
-    {
-        print "Don't know about compression yet.\n";
-        return;
-    }
+    # status.
     print "Loading: $filename\n";
 
     #
-    #  Get the database handle
+    #  Get the database handle and prepare the insertion query.
     #
     my $dbh = $CONFIG{'dbi'};
-
-    #
-    #  prepare the insertion query
-    #
     my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent ) VALUES( ?,?,?,?,?,?,? )" );
 
     #
-    #  Parse each line in a *very* simplistic and fragile way.
+    #  Open the named logfile, using a pipe for .gz files.
     #
-    #  Insert items into database
-    #
-    open( INPUT, "<", $filename ) or die "Cannot open $filename - $!";
+    if ( $filename =~ /gz$/i )
+    {
+        #
+        # Will fail if there is no zcat installed.
+        #
+        open( INPUT, "zcat $filename|" )
+          or die "Cannot read piped file - $filename : $! ";
+    }
+    else
+    {
+        # Open file normally.
+        open( INPUT, "<",  $filename )
+          or die "Cannot open file - $filename : $!";
+    }
 
+
+    #
+    #  Parse each line in a minimal fashion.
+    #
+    #  TODO: Make the format configurable?
+    #
     foreach my $line ( <INPUT> )
     {
         if ( $line =~ /^([^ \t]+)(.*)\"([^"]+)\" (\d+) (\d+) "([^"]+)" "([^"]+)"/ )
@@ -748,11 +759,11 @@ sub loadFile
             $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent );
         }
     }
-    close( INPUT );
 
     #
-    #  Finish the query
+    #  All done
     #
+    close( INPUT );
     $sth->finish();
 }
 
