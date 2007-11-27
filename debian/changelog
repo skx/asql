@@ -1,3 +1,10 @@
+asql (0.5-2) stable; urgency=low
+
+  * Correctly parse HEAD lines.
+  * Added a new field to the database for the HTTP version.
+
+ -- Steve Kemp <steve@steve.org.uk>  Tuesday, 27 Nov 2007 21:05:10 +0000
+
 asql (0.5-1) stable; urgency=low
 
   * Minor pod updates.
