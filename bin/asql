@@ -35,8 +35,42 @@ asql - Provide an SQL interface to Apache logfiles.
 
 =back
 
+=cut
+
+
+=head1 INTRODUCTION
+
+  The shell will create a temporary SQLite database based upon
+ a number of apache logfiles which you load.
+
+  To get started you should load your file via something like
+  this:
+
+=for example begin
+
+   load /var/log/apache2/acces*
+
+=for example end
+
+
+  Once you've loaded your files you may start running queries
+ against them:
+
+=for example begin
+
+  SELECT source,SUM(size) AS Number FROM logs GROUP BY source ORDER BY Number DESC, ip
+
+=for example end
+
+  This example shows all the clients connected to your machine
+ and the size of files in total that they have downloaded.
+
+  As you can see we've selected two columns "source" and "SUM(size)".
+ To see which columns are available you may execute the "show"
+ command.
 
 =cut
+
 
 =head1 AUTHOR
 
