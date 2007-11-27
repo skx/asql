@@ -1,3 +1,10 @@
+asql (0.5-1) stable; urgency=low
+
+  * Minor pod updates.
+  * Updated version number in the script.
+
+ -- Steve Kemp <steve@steve.org.uk>  Tuesday, 27 Nov 2007 21:02:10 +0000
+
 asql (0.1-4) stable; urgency=low
 
   * Added completion on arguments to 'load'.
