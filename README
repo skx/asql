@@ -2,13 +2,19 @@
 asql
 ----
 
-
   ASQL is a simple tool to allow you to query Apache common logfiles
- via SQL.
+ via SQL.  When it starts up it creates a temporary SQLite database
+ which later you may load Apache logfiles to.
+
+  Once you've loaded files you may then query against the temporary
+ database.
 
   Why might you want to do this?  Well it does allow you to make certain 
  queries very easily, for example:
 
+
+Examples
+--------
 
   Greediest IPs:
 

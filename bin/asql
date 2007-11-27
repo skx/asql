@@ -458,6 +458,20 @@ sub do_exit
         $term->WriteHistory( $file );
     }
 
+    #
+    #  Disconnect from the database
+    #
+    if ( $CONFIG{'dbi'} &&
+         $CONFIG{'dbi'}->ping() )
+    {
+        $CONFIG{'dbi'}->disconnect();
+    }
+
+    #
+    #  Remove it
+    #
+    unlink( $DBIFILE ) if ( -e $DBIFILE );
+
     exit;
 }
 
