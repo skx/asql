@@ -28,5 +28,11 @@ install:
 	cp bin/asql ${PREFIX}/usr/bin/asql
 	chmod 755 ${PREFIX}/usr/bin/asql
 
+test:
+	prove --shuffle t/
+
+test-verbose:
+	prove --verbose --shuffle t/
+
 update:
 	hg pull --update 2>/dev/null
