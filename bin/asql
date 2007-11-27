@@ -181,6 +181,7 @@ $SIG{INT} = "do_exit";
 #  Create the readline interface.
 #
 my $term = createTerminal();
+    my $attribs = $term->Attribs;
 
 
 
@@ -322,13 +323,38 @@ sub createTerminal
     #
     my $attribs = $term->Attribs;
     $attribs->{completion_entry_function} = $attribs->{list_completion_function};
-    $attribs->{completion_word}           = \@cmds;
+    $attribs->{completion_word}               = \@cmds;
+    $attribs->{attempted_completion_function} = \&completion;
 
     #
     #  Return it
     #
     return( $term );
 }
+
+
+
+
+=begin doc
+
+  Filename completion for the second arg - if the first argument is "load".
+
+=end doc
+
+=cut
+
+sub completion
+{
+    my ($text, $line, $start, $end) = @_;
+
+    if (substr($line, 0, $start) =~ /^load([ \t]+)$/i) 
+    {
+        return $term->completion_matches($text,
+                                         $attribs->{'filename_completion_function'});
+    }
+}
+
+
 
 
 
