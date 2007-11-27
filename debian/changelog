@@ -1,0 +1,13 @@
+asql (0.1-2) stable; urgency=low
+
+  * Cleanup of code with drop of Term::Shell since it breaks quotes.
+  * Added more examples.
+  * Added a stub manpage.
+
+ -- Steve Kemp <steve@steve.org.uk>  Tuesday, 27 Nov 2007 20:32:33 +0000
+
+asql (0.1-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Steve Kemp <steve@steve.org.uk>  Tuesday, 27 Nov 2007 11:35:03 +0000

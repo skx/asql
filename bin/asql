@@ -1,0 +1,775 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+asql - Provide an SQL interface to Apache logfiles.
+
+=cut
+
+
+=head1 SYNOPSIS
+
+  asql [options]
+
+  Options:
+
+   --help       Show brief help intstructions.
+   --manual     Show more complete help.
+   --version    Show the version of the software.
+
+=cut
+
+
+=head1 DESCRIPTION
+
+  asql provides a simple console interface to allow a user to
+ query the contents of an Apache logfile via an SQL interface.
+
+  The shell features include:
+
+=over 8
+
+=item Command line completion
+
+=item Command history
+
+=back
+
+
+=cut
+
+=head1 AUTHOR
+
+ Steve
+ --
+ http://www.steve.org.uk/
+
+=cut
+
+
+=head1 LICENSE
+
+Copyright (c) 2007 by Steve Kemp.  All rights reserved.
+
+This module is free software;
+you can redistribute it and/or modify it under
+the same terms as Perl itself.
+The LICENSE file contains the full text of the license.
+
+=cut
+
+
+
+
+
+use strict;
+use warnings;
+use DBI;
+use English;
+use Getopt::Long;
+use File::Temp qw/tempfile/;
+use Pod::Usage;
+
+
+#
+#  Release number of this script.
+#
+my $RELEASE   = '0.2';
+
+
+#
+#  Holder for values read from the configuration file, and the
+# default values.
+#
+my %CONFIG;
+
+
+
+#
+#  Dispatch table which contains the mapping between the commands
+# we make available and the routine which implements that behaviour.
+#
+#  This table also contains both the long and the short form of each
+# commands help text.
+#
+#
+my %dispatch =
+  (
+   "load" =>
+     {
+        sub => \&do_load,
+       args => "[file|glob]",
+       help => "Load an Apache logfile into the logs table\nYou may either specify a single file, or a glob pattern.",
+       info => "Load an Apache logfile.",
+     },
+   "exit" =>
+     {
+        sub => \&do_exit,
+       help => "Exit the shell.",
+       info => "Exit the shell.",
+     },
+   "help" =>
+     {
+        sub => \&do_help,
+       args => "[command]",
+       help => "Show help about the specified command, or all commands if no command is specified.",
+       info => "Show general, or command-specific, help information.",
+     },
+   "quit" =>   # Dupe: exit
+     {
+        sub => \&do_exit,
+       help => "Exit this shell.",
+       info => "Exit this shell.",
+     },
+   "select" =>
+     {
+        sub  => \&do_select,
+        help => "Run a SELECT query against the database.\nExample queries\n\n  SELECT distinct(source) FROM logs\n\nSELECT referer,COUNT(referer) AS number from logs GROUP BY referer ORDER BY number DESC,referer\n\netc.",
+        info => "Run a SELECT query against the database.",
+     },
+   "show" =>
+     {
+        sub  => \&do_show,
+        help => "Show the structure of the database.",
+        info => "Show the structure of the database.",
+     },
+  );
+
+
+
+####
+#
+#  Start of code
+#
+####
+
+
+#
+#  Parse any command line arguments which might be present.
+#
+#  Do this first so that --help, etc, works.
+#
+parseCommandLineArguments();
+
+
+#
+# Sanity check our host and user.
+#
+sanityCheck();
+
+
+#
+# Create a temporary database file
+#
+my (undef, $DBIFILE) = File::Temp::tempfile();
+
+
+#
+# Show our banner.
+#
+showBanner();
+
+
+#
+#  Setup a signal handler to make sure we save history at exit-time.
+#
+$SIG{INT} = "do_exit";
+
+
+#
+#
+#  Create the readline interface.
+#
+my $term = createTerminal();
+
+
+
+#
+#  Load any command history which might be present.
+#
+loadHistory( $term );
+
+
+
+#
+#  Run our command loop - note this never returns.
+#
+runMainLoop( $term );
+
+
+
+#
+#  Never reached
+#
+exit;
+
+
+
+
+
+
+
+=begin doc
+
+  Parse any command line options which might be present.
+
+=end doc
+
+=cut
+
+sub parseCommandLineArguments
+{
+    my $SHOW_HELP      = 0;
+    my $SHOW_MANUAL    = 0;
+    my $SHOW_VERSION   = 0;
+
+    #
+    #  Parse options.
+    #
+    GetOptions(
+               "help",      \$SHOW_HELP,
+               "manual",    \$SHOW_MANUAL,
+               "version",   \$SHOW_VERSION,
+             );
+
+    pod2usage(1) if $SHOW_HELP;
+    pod2usage(-verbose => 2 ) if $SHOW_MANUAL;
+
+    if ( $SHOW_VERSION )
+    {
+        print "asql v$RELEASE\n";
+        exit;
+    }
+}
+
+
+
+=begin doc
+
+  Sanity check that we can load the Perl modules we require.
+
+=end doc
+
+=cut
+
+sub sanityCheck
+{
+    #
+    #  Test we have the perl modules we need.
+    #
+    BEGIN {
+        eval {
+            require Term::ReadLine;
+            require Term::ReadLine::Gnu;
+        };
+    };
+    if ( $@ )
+    {
+        print "Package 'Term::ReadLine::Gnu' not installed.\n";
+        print "Aborting\n";
+        sleep 5;
+        exit;
+    }
+
+}
+
+
+
+=begin doc
+
+ Show the startup banner for the shell.
+
+=end doc
+
+=cut
+
+sub showBanner
+{
+    print "asql v$RELEASE - type 'help' for help.\n";
+}
+
+
+
+
+=begin doc
+
+  Create the terminal interface, complete with command completion.
+
+  Rather than hard-wiring the commands which are available we take them
+ from our global dispatch table.
+
+=end doc
+
+=cut
+
+sub createTerminal
+{
+    my $term = new Term::ReadLine 'asql';
+
+    #
+    # Process our dispatch table to determine which commands
+    # are available.
+    #
+    my @cmds = ();
+
+    #
+    #  Add all commands.
+    #
+    push @cmds, ( keys %dispatch );
+
+    #
+    #  Add completion
+    #
+    my $attribs = $term->Attribs;
+    $attribs->{completion_entry_function} = $attribs->{list_completion_function};
+    $attribs->{completion_word}           = \@cmds;
+
+    #
+    #  Return it
+    #
+    return( $term );
+}
+
+
+
+=begin doc
+
+  If the user has a history present in ~/.xen-shell load it up.
+
+=end doc
+
+=cut
+
+sub loadHistory
+{
+    my ( $term ) = ( @_ );
+
+    #
+    #  Load the file, if it exists, from the home directory.
+    #
+    my $file = $ENV{'HOME'} . "/.asql";
+    if ( -e $file )
+    {
+        #
+        #  Load the history if we can.
+        #
+        if ( UNIVERSAL::can( $term, 'ReadHistory' ) )
+        {
+            $term->ReadHistory( $file );
+        }
+    }
+}
+
+
+
+
+=begin doc
+
+  Run the input reading + dispatching loop.   We use the dispatch
+ table already defined to handle input.
+
+  Parsing of command line input is extremely minimal - we break the
+ input line into "word" which is the first whitespace deliminated
+ token on the line and "args" which is the remainder of the line.
+
+  This is sufficient for our purposes.
+
+=end doc
+
+=cut
+
+sub runMainLoop
+{
+    my ( $term ) = ( @_ );
+
+    #
+    #  Prompt
+    #
+    my $prompt = "asql> ";
+
+    #
+    #  Command loop.
+    #
+    while ( defined (my $line = $term->readline($prompt) ) )
+    {
+        # Ignore empty lines.
+        next if ( !length( $line ) );
+
+        # Strip leading and trailing whitespace.
+        $line =~ s/^\s+//;
+        $line =~ s/\s+$//;
+
+        # If we have arguments then split them up.
+        my ($word, @args) = split( /[ \t]/, $line );
+
+        # Lookup command in our dispatch table.
+        my $cmd = $dispatch{ lc( $word ) };
+
+        if ( $cmd )
+        {
+            # Call the function with any arguments we might have.
+            $cmd->{'sub'}->( join( " ", @args ) );
+
+            # Add a successful line to our history, if we can.
+            if ( UNIVERSAL::can( $term, 'add_history' ) )
+            {
+                $term->add_history( $line );
+            }
+        }
+        else
+        {
+            if ( defined( $word ) && length( $word ) )
+            {
+                print "Unknown command: '$word' - type 'help' for help.\n";
+            }
+        }
+    }
+
+    #
+    #  Save history on exit.
+    #
+    do_exit();
+}
+
+
+
+
+
+=begin doc
+
+ Exit this shell, first saving any command history.
+
+=end doc
+
+=cut
+
+sub do_exit
+{
+    #
+    #  The name of the history file, inside the home directory.
+    #
+    my $file = $ENV{'HOME'} . "/.asql";
+
+    #
+    #  Save the history if the term module can.
+    #
+    if ( UNIVERSAL::can( $term, 'WriteHistory' ) )
+    {
+        $term->WriteHistory( $file );
+    }
+
+    exit;
+}
+
+
+
+
+
+=begin doc
+
+  Show the user some help.
+
+  When called with no arguments it will display all supported commands.
+
+  If called with arguments then they we will show only help for the
+ specified command(s).
+
+=end doc
+
+=cut
+
+sub do_help
+{
+    my ( $term ) = ( @_ );
+
+    #
+    #  Help on a single command
+    #
+    if ( ( defined( $term ) ) && ( length( $term ))  )
+    {
+        foreach my $cmd ( split( /[ \t]/, $term ) )
+        {
+            # Lookup command in our dispatch table.
+            my $c = $dispatch{ lc( $cmd ) };
+            if ( $c )
+            {
+                my $args = $c->{'args'};
+
+                if ( !defined( $args ) ) { $args = ''; }
+
+                print "\nCommand: $cmd $args\n\n";
+                print $c->{'help'} . "\n";
+            }
+            else
+            {
+                print "Unknown command '$cmd' - no help text available\n";
+            }
+        }
+        return;
+    }
+
+
+    print "asql v$RELEASE\n";
+    print "The following commands are available within this shell:\n\n";
+
+    #
+    #  Build up the short-help, indented it nicely.
+    #
+    foreach my $entry ( sort keys %dispatch )
+    {
+        my $hash = $dispatch{$entry};
+
+        print sprintf( "%10s - %s\n", $entry, $hash->{'info'} );
+    }
+
+    #
+    #  Footer.
+    #
+    print "\nFor command-specific help run \"help command\".\n\n";
+
+}
+
+
+
+
+=begin doc
+
+  Load the specified files into our tables.
+
+=end doc
+
+=cut
+
+
+sub do_load
+{
+    my( @files ) = ( @_ );
+
+    #
+    #  Create the tables if we've not already done so.
+    #
+    if ( ! $CONFIG{'loaded'} )
+    {
+        #
+        # create a database handle
+        #
+        $CONFIG{'dbi'} = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+
+        #
+        #  Delete the table if it already exists.
+        #
+        eval
+        {
+            local $CONFIG{'dbi'}->{PrintError} = 0;
+            $CONFIG{'dbi'}->do("DROP TABLE logs");
+        };
+        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent);" );
+
+        $CONFIG{'loaded'} = 1;
+    }
+
+    #
+    #  Now load each file.
+    #
+    foreach my $file ( @files )
+    {
+        # file exists - load it.
+        if ( -e $file )
+        {
+            loadFile( $file );
+        }
+        else
+        {
+            # could be a glob?
+            foreach my $f ( glob( $file ) )
+            {
+                if ( -e $f )
+                {
+                    loadFile( $f );
+                }
+                else
+                {
+                    # not found
+                    print "Ignoring file which doesn't exist: $file\n";
+                }
+            }
+        }
+    }
+}
+
+
+=begin doc
+
+  Run a select query.
+
+=end doc
+
+=cut
+
+sub do_select
+{
+    my( $sql ) = ( @_ );
+
+    if ( !length( $sql ) )
+    {
+        print "Missing arguments\n";
+        return;
+    }
+    $sql = "select $sql" ;
+
+    if ( !$CONFIG{'loaded'} )
+    {
+        print "No files loaded yet!\n";
+        return;
+    }
+
+    my $dbh = $CONFIG{'dbi'};
+    if ( !$dbh || !$dbh->ping() )
+    {
+        print "Database handle closed - trying to reopen!\n";
+
+        $dbh = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+
+        if ( !$dbh )
+        {
+            print "Failed\n";
+            return;
+        }
+        else
+        {
+            print "Re-connected\n";
+            $CONFIG{'dbi'} = $dbh;
+        }
+    }
+
+    my $sth = $dbh->prepare($sql);
+
+    if  ($sth )
+    {
+        $sth->execute();
+        print "@$_\n" while  $_ = $sth->fetchrow_arrayref();
+        $sth->finish();
+        print "\n";
+    }
+    else
+    {
+        print "Failed to compile SQL\n";
+    }
+}
+
+
+=begin doc
+
+  Show the structure of our table.
+
+=end doc
+
+=cut
+
+sub do_show
+{
+    print <<EOF;
+
+   The log table has the following columns:
+
+  id      - ID of the request
+  source  - IP, or hostname, which made the request.
+  request - The HTTP request
+  status  - The HTTP status-code returned
+  size    - The size of the response served, in bytes.
+  method  - The HTTP method invoked (GET, PUT, POST etc).
+  referer - The HTTP referer (sic).
+  agent   - The user-agent which made the request.
+
+EOF
+}
+
+
+
+
+sub loadFile
+{
+    my( $filename ) = (@_);
+    die "No filename...." if ( ! defined( $filename ) );
+
+    if ( $filename =~ /.gz$/i )
+    {
+        print "Don't know about compression yet.\n";
+        return;
+    }
+    print "Loading: $filename\n";
+
+    #
+    #  Get the database handle
+    #
+    my $dbh = $CONFIG{'dbi'};
+
+    #
+    #  prepare the insertion query
+    #
+    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent ) VALUES( ?,?,?,?,?,?,? )" );
+
+    #
+    #  Parse each line in a *very* simplistic and fragile way.
+    #
+    #  Insert items into database
+    #
+    open( INPUT, "<", $filename ) or die "Cannot open $filename - $!";
+
+    foreach my $line ( <INPUT> )
+    {
+        if ( $line =~ /^([^ \t]+)(.*)\"([^"]+)\" (\d+) (\d+) "([^"]+)" "([^"]+)"/ )
+        {
+            my $ip     = $1;
+            my $req    = $3;
+            my $status = $4;
+            my $size   = $5;
+            my $refer  = $6;
+            my $agent  = $7;
+
+            my @in = split( / /, $req );
+            my $method = $in[0];
+            my $path   = $in[1];
+
+            $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent );
+        }
+    }
+    close( INPUT );
+
+    #
+    #  Finish the query
+    #
+    $sth->finish();
+}
+
+
+
+#
+#  Print a newline or two on termination, just to make things prettier.
+#
+END {
+    print "\n\n";
+}
+
+
+
+
+
+=head1 AUTHOR
+
+ Steve
+ --
+ http://www.steve.org.uk/
+
+=cut
+
+=head1 LICENSE
+
+Copyright (c) 2005-2006 by Steve Kemp.  All rights reserved.
+
+This module is free software;
+you can redistribute it and/or modify it under
+the same terms as Perl itself.
+The LICENSE file contains the full text of the license.
+
+=cut
