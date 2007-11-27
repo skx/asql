@@ -16,13 +16,23 @@ asql
 Examples
 --------
 
-  Greediest IPs:
+  Greediest downloaders:
 
   SELECT source,SUM(size) AS Number FROM logs GROUP BY source ORDER BY Number DESC, ip
 
-  A count of referers:
+  A count of each distinct referers:
  
-  SELECT referer,COUNT(referer) AS number from logs WHERE referer NOT LIKE '%steve.org.uk%' GROUP BY referer ORDER BY number DESC,referer LIMIT 0,5
+  SELECT referer,COUNT(referer) AS number from logs WHERE referer NOT LIKE '%steve.org.uk%' GROUP BY referer ORDER BY number DESC,referer LIMIT 0,10
+
+
+  See which .deb files were downloaded the most:
+
+  SELECT request,COUNT(request) AS Number FROM logs WHERE request LIKE '%.deb' GROUP BY request ORDER BY Number DESC, request;
+
+
+  See who has downloaded me:
+
+   select * FROM logs WHERE request='/etch/pool/main/a/asql/asql_0.1-2_all.deb';
 
 
 Steve
