@@ -637,7 +637,7 @@ sub do_load
             local $CONFIG{'dbi'}->{PrintError} = 0;
             $CONFIG{'dbi'}->do("DROP TABLE logs");
         };
-        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent);" );
+        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version);" );
 
         $CONFIG{'loaded'} = 1;
     }
@@ -754,6 +754,7 @@ sub do_show
   method  - The HTTP method invoked (GET, PUT, POST etc).
   referer - The HTTP referer (sic).
   agent   - The user-agent which made the request.
+  version - The HTTP version used by this client.
 
 EOF
 }
@@ -775,7 +776,7 @@ sub loadFile
     #  Get the database handle and prepare the insertion query.
     #
     my $dbh = $CONFIG{'dbi'};
-    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent ) VALUES( ?,?,?,?,?,?,? )" );
+    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent, version ) VALUES( ?,?,?,?,?,?,?,? )" );
 
     #
     #  Open the named logfile, using a pipe for .gz files.
@@ -803,7 +804,7 @@ sub loadFile
     #
     foreach my $line ( <INPUT> )
     {
-        if ( $line =~ /^([^ \t]+)(.*)\"([^"]+)\" (\d+) (\d+) "([^"]+)" "([^"]+)"/ )
+        if ( $line =~ /^([^ \t]+)(.*)\"([^"]+)\" (\d+) (\d+|-) "([^"]+)" "([^"]+)"/ )
         {
             my $ip     = $1;
             my $req    = $3;
@@ -815,8 +816,11 @@ sub loadFile
             my @in = split( / /, $req );
             my $method = $in[0];
             my $path   = $in[1];
+            my $ver    = $in[2]
+;
+            $ver = $1 if ( $ver =~ /HTTP\/([0-9\.]+)/ );
 
-            $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent );
+            $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent, $ver );
         }
     }
 
