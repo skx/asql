@@ -41,10 +41,10 @@ asql - Provide an SQL interface to Apache logfiles.
 =head1 INTRODUCTION
 
   The shell will create a temporary SQLite database based upon
- a number of apache logfiles which you load.
+ any number of Apache logfiles.  This temporary database can
+ then be interactively queried using SQL syntax.
 
-  To get started you should load your file via something like
-  this:
+  To get started you should load your logfiles into the database:
 
 =for example begin
 
@@ -53,8 +53,8 @@ asql - Provide an SQL interface to Apache logfiles.
 =for example end
 
 
-  Once you've loaded your files you may start running queries
- against them:
+  Once you've loaded at least one file you may  run queries, for
+ example:
 
 =for example begin
 
@@ -66,7 +66,7 @@ asql - Provide an SQL interface to Apache logfiles.
  and the size of files in total that they have downloaded.
 
   As you can see we've selected two columns "source" and "SUM(size)".
- To see which columns are available you may execute the "show"
+ To see which other columns are available you may execute the "show"
  command.
 
 =cut
@@ -149,7 +149,7 @@ my %dispatch =
        help => "Show help about the specified command, or all commands if no command is specified.",
        info => "Show general, or command-specific, help information.",
      },
-   "quit" =>   # Dupe: exit
+   "quit" => # Dupe: exit
      {
         sub => \&do_exit,
        help => "Exit this shell.",
@@ -205,17 +205,17 @@ showBanner();
 
 
 #
-#  Setup a signal handler to make sure we save history at exit-time.
+#  Setup a signal handler to make sure we cleanup appropriately.
 #
 $SIG{INT} = "do_exit";
 
 
 #
+#  Create the readline interface, and save the attributes away
+# so that we may use them for our completion code.
 #
-#  Create the readline interface.
-#
-my $term = createTerminal();
-    my $attribs = $term->Attribs;
+my $term    = createTerminal();
+my $attribs = $term->Attribs;
 
 
 
@@ -227,7 +227,9 @@ loadHistory( $term );
 
 
 #
-#  Run our command loop - note this never returns.
+#  Run our command loop.
+#
+#  NOTE: this never returns.
 #
 runMainLoop( $term );
 
@@ -310,6 +312,7 @@ sub sanityCheck
 
 
 
+
 =begin doc
 
  Show the startup banner for the shell.
@@ -381,7 +384,7 @@ sub completion
 {
     my ($text, $line, $start, $end) = @_;
 
-    if (substr($line, 0, $start) =~ /^load([ \t]+)$/i) 
+    if (substr($line, 0, $start) =~ /^load([ \t]+)$/i )
     {
         return $term->completion_matches($text,
                                          $attribs->{'filename_completion_function'});
@@ -394,7 +397,7 @@ sub completion
 
 =begin doc
 
-  If the user has a history present in ~/.xen-shell load it up.
+  If the user has a history present in ~/.asql load it up.
 
 =end doc
 
@@ -567,9 +570,8 @@ sub do_help
             my $c = $dispatch{ lc( $cmd ) };
             if ( $c )
             {
-                my $args = $c->{'args'};
-
-                if ( !defined( $args ) ) { $args = ''; }
+                # arguments for the command?
+                my $args = $c->{'args'} || '';
 
                 print "\nCommand: $cmd $args\n\n";
                 print $c->{'help'} . "\n";
@@ -676,6 +678,9 @@ sub do_load
 
   Run a select query.
 
+  This routine is the core of the shell, it should parse evaluate
+ and display the result(s) of the specified query.
+
 =end doc
 
 =cut
@@ -684,19 +689,33 @@ sub do_select
 {
     my( $sql ) = ( @_ );
 
+    #
+    #  Make sure we received a query
+    #
     if ( !length( $sql ) )
     {
         print "Missing arguments\n";
         return;
     }
-    $sql = "select $sql" ;
 
+    #
+    #  Make sure we've loaded at least one file.
+    #
     if ( !$CONFIG{'loaded'} )
     {
         print "No files loaded yet!\n";
         return;
     }
 
+    #
+    # add on the first word - removed when the tokenization happens.
+    #
+    $sql = "select $sql" ;
+
+
+    #
+    #  Make sure we have a database handle
+    #
     my $dbh = $CONFIG{'dbi'};
     if ( !$dbh || !$dbh->ping() )
     {
@@ -716,10 +735,15 @@ sub do_select
         }
     }
 
+    #
+    #  Prepare the statement
+    #
     my $sth = $dbh->prepare($sql);
-
     if  ($sth )
     {
+        #
+        #  Execute it and show the results.
+        #
         $sth->execute();
         print "@$_\n" while  $_ = $sth->fetchrow_arrayref();
         $sth->finish();
@@ -727,9 +751,14 @@ sub do_select
     }
     else
     {
+        #
+        #  Failed to compile - the user will already see
+        # an error, but we'll reiterate it.
+        #
         print "Failed to compile SQL\n";
     }
 }
+
 
 
 =begin doc
@@ -753,7 +782,7 @@ sub do_show
   size    - The size of the response served, in bytes.
   method  - The HTTP method invoked (GET, PUT, POST etc).
   referer - The HTTP referer (sic).
-  agent   - The user-agent which made the request.
+  agent   - The User-Agent which made the request.
   version - The HTTP version used by this client.
 
 EOF
@@ -761,6 +790,14 @@ EOF
 
 
 
+=begin doc
+
+  Load the specified filename, or glob pattern, into our temporary
+ SQLite database.
+
+=end doc
+
+=cut
 
 sub loadFile
 {
@@ -854,7 +891,7 @@ END {
 
 =head1 LICENSE
 
-Copyright (c) 2005-2006 by Steve Kemp.  All rights reserved.
+Copyright (c) 2007 by Steve Kemp.  All rights reserved.
 
 This module is free software;
 you can redistribute it and/or modify it under
