@@ -1,6 +1,6 @@
 asql (0.1-4) stable; urgency=low
 
-  * Added completion on filenames
+  * Added completion on arguments to 'load'.
   * Understand gzip compressed logfiles.
 
  -- Steve Kemp <steve@steve.org.uk>  Tuesday, 27 Nov 2007 20:32:33 +0000
