@@ -53,6 +53,9 @@ asql - Provide an SQL interface to Apache logfiles.
 =for example end
 
 
+  (The tool will automatically decompress and load gzipped, or bzipped
+ files.)
+
   Once you've loaded at least one file you may  run queries, for
  example:
 
@@ -133,7 +136,7 @@ my %dispatch =
      {
         sub => \&do_load,
        args => "[file|glob]",
-       help => "Load an Apache logfile into the logs table\nYou may either specify a single file, or a glob pattern.",
+       help => "Load an Apache logfile into the logs table\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be auomtically decompressed and loaded.",
        info => "Load an Apache logfile.",
      },
    "exit" =>
@@ -187,7 +190,7 @@ parseCommandLineArguments();
 
 
 #
-# Sanity check our host and user.
+# Sanity check our perl module availability.
 #
 sanityCheck();
 
@@ -816,7 +819,7 @@ sub loadFile
     my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent, version ) VALUES( ?,?,?,?,?,?,?,? )" );
 
     #
-    #  Open the named logfile, using a pipe for .gz files.
+    #  Open the named logfile, using a pipe for .bz2/.gz files.
     #
     if ( $filename =~ /gz$/i )
     {
@@ -824,6 +827,14 @@ sub loadFile
         # Will fail if there is no zcat installed.
         #
         open( INPUT, "zcat $filename|" )
+          or die "Cannot read piped file - $filename : $! ";
+    }
+    elsif ( $filename =~ /bz2$/i )
+    {
+        #
+        # Will fail if there is no bzcat installed.
+        #
+        open( INPUT, "bzcat $filename|" )
           or die "Cannot read piped file - $filename : $! ";
     }
     else
