@@ -43,8 +43,8 @@ asql - Provide an SQL interface to Apache logfiles.
 =head1 INTRODUCTION
 
   The shell will create a temporary SQLite database based upon
- any number of Apache logfiles.  This temporary database can
- then be interactively queried using SQL syntax.
+ any number of Apache logfiles.  This temporary database may then
+ be interactively queried using the common SQL syntax.
 
   To get started you should load your logfiles into the database:
 
@@ -55,10 +55,10 @@ asql - Provide an SQL interface to Apache logfiles.
 =for example end
 
 
-  (The tool will automatically decompress and load gzipped, or bzipped
- files.)
+  (The tool will automatically decompress files which have been
+ compressed with gzip or bzip2.)
 
-  Once you've loaded at least one file you may  run queries, for
+  Once you've loaded at least one file you may run queries, for
  example:
 
 =for example begin
@@ -73,6 +73,13 @@ asql - Provide an SQL interface to Apache logfiles.
   As you can see we've selected two columns "source" and "SUM(size)".
  To see which other columns are available you may execute the "show"
  command.
+
+  Because parsing the Apache logfile(s) specified might be quite
+ slow there is the option of dumping the temporary SQLite database
+ to a known filename with the 'save' command.  The analog to the
+ save command is the 'restore' command, which will read in an
+ existing SQLite database and allow future queries to be executed
+ against it.
 
 =cut
 
@@ -246,8 +253,8 @@ my %dispatch =
    "update" =>
      {
         sub  => sub { my ( $args ) = (@_); do_sql( "update", $args ); },
-        help => "Run a UPDATE query against the database.\n",
-        info => "Run a UPDATE query against the database.",
+        help => "Run an UPDATE query against the database.\n",
+        info => "Run an UPDATE query against the database.",
      },
   );
 
@@ -293,7 +300,8 @@ showBanner();
 
 
 #
-#  Setup a signal handler to make sure we cleanup appropriately.
+#  Setup a signal handler to make sure we cleanup appropriately,
+# and save our aliases.
 #
 $SIG{INT} = "do_exit";
 
@@ -369,6 +377,7 @@ sub parseCommandLineArguments
 
 
 
+
 =begin doc
 
   Sanity check that we can load the Perl modules we require.
@@ -414,7 +423,7 @@ sub loadAliases
     # no file == no aliases
     return if ( ! -e $CONFIG{'aliases'} );
 
-    #read the file.
+    # read the file into this buffer.
     my $aliases = '';
 
     open( INPUT, "<", $CONFIG{'aliases' } )
@@ -426,9 +435,13 @@ sub loadAliases
     }
     close( INPUT );
 
+    #
+    #  Evaluate and store any aliases
+    #
     my $VAR1 = undef;
     my $f = eval( $aliases );
     %ALIASES= %$f if ( $f );
+
 }
 
 
@@ -446,9 +459,7 @@ sub saveAliases
 {
     open( INPUT, ">", $CONFIG{'aliases' } )
       or die "Failed to write aliases file $CONFIG{'aliases'} : $!";
-
     print INPUT Dumper( \%ALIASES );
-
     close( INPUT );
 }
 
@@ -683,6 +694,15 @@ sub runMainLoop
 }
 
 
+
+=begin doc
+
+  Process a single line which has been read from the console.
+
+=end doc
+
+=cut
+
 sub processLine
 {
     my( $line ) = ( @_ );
@@ -735,6 +755,9 @@ sub processLine
     }
 }
 
+
+
+
 =begin doc
 
   Show, or define a new alias
@@ -755,7 +778,7 @@ sub do_alias
             print "ALIAS $name $ALIASES{$name}\n";
             $count += 1;
         }
-        print "No aliases are defined.\n" unless( $count );
+        print "No aliases are currently defined.\n" unless( $count );
         return;
     }
 
@@ -763,9 +786,13 @@ sub do_alias
     #  Define a new one
     #
     my( $name, @rest ) = split( / /, $line );
-
     my $value = join( " ", @rest );
-    print "Saving '$name' = '$value'\n";
+
+    print "ALIAS $name $value\n";
+
+    #
+    #  Delete the current alias of that name, if it exists.
+    #
     delete $ALIASES{$name};
     $ALIASES{$name} = $value if ( defined( $value ) && ( length($value) ) );
 }
