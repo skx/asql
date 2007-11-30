@@ -161,6 +161,12 @@ my %dispatch =
        help => "Define a persistent alias, or with no arguments list those present\nIf no arguments are given all current aliases, as loaded from the\nfile $CONFIG{'aliases'} are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
        info => "Define, or view, persistent aliases.",
      },
+   "create" =>
+     {
+        sub  => \&do_create,
+        help => "Run a CREATE query against the database.\n",
+        info => "Run a CREATE query against the database.",
+     },
    "load" =>
      {
         sub => \&do_load,
@@ -421,6 +427,68 @@ sub saveAliases
 
 =begin doc
 
+  This routine is the core of the shell, it should parse evaluate
+ and display the result(s) of the specified query.
+
+=end doc
+
+=cut
+
+sub runQuery
+{
+    my( $sql ) = ( @_ );
+
+    #
+    #  Make sure we have a database handle
+    #
+    my $dbh = $CONFIG{'dbi'};
+    if ( !$dbh || !$dbh->ping() )
+    {
+        print "Database handle closed - trying to reopen!\n";
+
+        $dbh = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+
+        if ( !$dbh )
+        {
+            print "Failed\n";
+            return;
+        }
+        else
+        {
+            print "Re-connected\n";
+            $CONFIG{'dbi'} = $dbh;
+        }
+    }
+
+    #
+    #  Prepare the statement
+    #
+    my $sth = $dbh->prepare($sql);
+    if  ($sth )
+    {
+        #
+        #  Execute it and show the results.
+        #
+        $sth->execute();
+        print "@$_\n" while  $_ = $sth->fetchrow_arrayref();
+        $sth->finish();
+        print "\n";
+    }
+    else
+    {
+        #
+        #  Failed to compile - the user will already see
+        # an error, but we'll reiterate it.
+        #
+        print "Failed to compile SQL\n";
+    }
+}
+
+
+
+
+=begin doc
+
  Show the startup banner for the shell.
 
 =end doc
@@ -671,6 +739,51 @@ sub do_alias
     delete $ALIASES{$name};
     $ALIASES{$name} = $value if ( defined( $value ) && ( length($value) ) );
 }
+
+
+
+=begin doc
+
+  Run a CREATE query.
+
+=end doc
+
+=cut
+
+sub do_create
+{
+    my( $sql ) = ( @_ );
+
+    #
+    #  Make sure we received a query
+    #
+    if ( !length( $sql ) )
+    {
+        print "Missing arguments\n";
+        return;
+    }
+
+    #
+    #  Make sure we've loaded at least one file.
+    #
+    if ( !$CONFIG{'loaded'} )
+    {
+        print "No files loaded yet!\n";
+        return;
+    }
+
+    #
+    # add on the first word - removed when the tokenization happens.
+    #
+    $sql = "CREATE $sql" ;
+
+
+    #
+    # Run the query
+    #
+    runQuery( $sql );
+}
+
 
 
 
@@ -939,12 +1052,10 @@ sub do_save
 
 
 
+
 =begin doc
 
   Run a select query.
-
-  This routine is the core of the shell, it should parse evaluate
- and display the result(s) of the specified query.
 
 =end doc
 
@@ -979,50 +1090,12 @@ sub do_select
 
 
     #
-    #  Make sure we have a database handle
+    # Run the query
     #
-    my $dbh = $CONFIG{'dbi'};
-    if ( !$dbh || !$dbh->ping() )
-    {
-        print "Database handle closed - trying to reopen!\n";
-
-        $dbh = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
-
-        if ( !$dbh )
-        {
-            print "Failed\n";
-            return;
-        }
-        else
-        {
-            print "Re-connected\n";
-            $CONFIG{'dbi'} = $dbh;
-        }
-    }
-
-    #
-    #  Prepare the statement
-    #
-    my $sth = $dbh->prepare($sql);
-    if  ($sth )
-    {
-        #
-        #  Execute it and show the results.
-        #
-        $sth->execute();
-        print "@$_\n" while  $_ = $sth->fetchrow_arrayref();
-        $sth->finish();
-        print "\n";
-    }
-    else
-    {
-        #
-        #  Failed to compile - the user will already see
-        # an error, but we'll reiterate it.
-        #
-        print "Failed to compile SQL\n";
-    }
+    runQuery( $sql );
 }
+
+
 
 
 
