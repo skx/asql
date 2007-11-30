@@ -491,7 +491,8 @@ sub completion
 {
     my ($text, $line, $start, $end) = @_;
 
-    if (substr($line, 0, $start) =~ /^load([ \t]+)$/i )
+    if ((substr($line, 0, $start) =~ /^load([ \t]+)$/i ) ||
+        (substr($line, 0, $start) =~ /^restore([ \t]+)$/i ) )
     {
         return $term->completion_matches($text,
                                          $attribs->{'filename_completion_function'});
