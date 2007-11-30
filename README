@@ -10,11 +10,35 @@ asql
  database.
 
   Why might you want to do this?  Well it does allow you to make certain 
- queries very easily, for example:
+ queries very easily.
 
 
-Examples
---------
+Aliases
+-------
+
+  Using the 'alias' command you may record and replay previous
+ queries by name.
+
+  For example the following query will show the number of hits
+ against your server:
+
+   SELECT COUNT(id) FROM logs;
+
+  You could save this query via this:
+
+   ALIAS hits SELECT COUNT(id) FROM logs;
+
+  Now at any future point entering 'hits' would run the query.
+
+  (Aliases persist between sessions via the file ~/.asql.aliases.)
+
+
+Example Queries
+---------------
+
+  The following examples give an idea of the kind of power an SQL
+ query allows you:
+
 
   Greediest downloaders:
 
@@ -25,15 +49,14 @@ Examples
   SELECT referer,COUNT(referer) AS number from logs WHERE referer NOT LIKE '%steve.org.uk%' GROUP BY referer ORDER BY number DESC,referer LIMIT 0,10
 
 
-  See which .deb files were downloaded the most:
+  See which Debian packages were downloaded the most:
 
   SELECT request,COUNT(request) AS Number FROM logs WHERE request LIKE '%.deb' GROUP BY request ORDER BY Number DESC, request;
 
 
   See who has downloaded me:
 
-   select * FROM logs WHERE request='/etch/pool/main/a/asql/asql_0.1-2_all.deb';
-
+   select * FROM logs WHERE request='/etch/pool/main/a/asql/asql_0.6-1_all.deb';
 
 Steve
 -- 
