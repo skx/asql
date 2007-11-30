@@ -161,11 +161,35 @@ my %dispatch =
        help => "Define a persistent alias, or with no arguments list those present\nIf no arguments are given all current aliases, as loaded from the\nfile $CONFIG{'aliases'} are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
        info => "Define, or view, persistent aliases.",
      },
+   "alter" =>
+     {
+        sub  => sub { my ( $args ) = (@_); do_sql( "alter", $args ); },
+        help => "Run an ALTER query against the database.\n",
+        info => "Run an ALTER query against the database.",
+     },
    "create" =>
      {
-        sub  => \&do_create,
+        sub  => sub { my ( $args ) = (@_); do_sql( "create", $args ); },
         help => "Run a CREATE query against the database.\n",
         info => "Run a CREATE query against the database.",
+     },
+   "delete" =>
+     {
+        sub  => sub { my ( $args ) = (@_); do_sql( "delete", $args ); },
+        help => "Run a DELETE query against the database.\n",
+        info => "Run a DELETE query against the database.",
+     },
+   "drop" =>
+     {
+        sub  => sub { my ( $args ) = (@_); do_sql( "drop", $args ); },
+        help => "Run a DROP query against the database.\n",
+        info => "Run a DROP query against the database.",
+     },
+   "insert" =>
+     {
+        sub  => sub { my ( $args ) = (@_); do_sql( "insert", $args ); },
+        help => "Run an INSERT query against the database.\n",
+        info => "Run an INSERT query against the database.",
      },
    "load" =>
      {
@@ -209,7 +233,7 @@ my %dispatch =
      },
    "select" =>
      {
-        sub  => \&do_select,
+        sub  => sub { my ( $args ) = (@_); do_sql( "select", $args ); },
         help => "Run a SELECT query against the database.\nExample queries\n\n  SELECT distinct(source) FROM logs\n\nSELECT referer,COUNT(referer) AS number from logs GROUP BY referer ORDER BY number DESC,referer\n\netc.",
         info => "Run a SELECT query against the database.",
      },
@@ -218,6 +242,12 @@ my %dispatch =
         sub  => \&do_show,
         help => "Show the structure of the database.",
         info => "Show the structure of the database.",
+     },
+   "update" =>
+     {
+        sub  => sub { my ( $args ) = (@_); do_sql( "update", $args ); },
+        help => "Run a UPDATE query against the database.\n",
+        info => "Run a UPDATE query against the database.",
      },
   );
 
@@ -742,50 +772,6 @@ sub do_alias
 
 
 
-=begin doc
-
-  Run a CREATE query.
-
-=end doc
-
-=cut
-
-sub do_create
-{
-    my( $sql ) = ( @_ );
-
-    #
-    #  Make sure we received a query
-    #
-    if ( !length( $sql ) )
-    {
-        print "Missing arguments\n";
-        return;
-    }
-
-    #
-    #  Make sure we've loaded at least one file.
-    #
-    if ( !$CONFIG{'loaded'} )
-    {
-        print "No files loaded yet!\n";
-        return;
-    }
-
-    #
-    # add on the first word - removed when the tokenization happens.
-    #
-    $sql = "CREATE $sql" ;
-
-
-    #
-    # Run the query
-    #
-    runQuery( $sql );
-}
-
-
-
 
 =begin doc
 
@@ -1051,24 +1037,28 @@ sub do_save
 
 
 
-
-
 =begin doc
 
-  Run a select query.
+  This routine is called to invoke an SQL operation, the first argument
+ is an SQL keyword, the additional arguments are the rest of the query.
+
+  See the dispatch table for details of the different primary SQL commands
+ we accept.
 
 =end doc
 
 =cut
 
-sub do_select
+
+sub do_sql
 {
-    my( $sql ) = ( @_ );
+    my( $command, $query )  = (@_);
+
 
     #
     #  Make sure we received a query
     #
-    if ( !length( $sql ) )
+    if ( !length( $query ) )
     {
         print "Missing arguments\n";
         return;
@@ -1083,16 +1073,8 @@ sub do_select
         return;
     }
 
-    #
-    # add on the first word - removed when the tokenization happens.
-    #
-    $sql = "select $sql" ;
 
-
-    #
-    # Run the query
-    #
-    runQuery( $sql );
+    runQuery( $command . " " . $query );
 }
 
 
