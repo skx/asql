@@ -1,3 +1,13 @@
+asql (0.6-1) stable; urgency=low
+
+  * New upstream release:
+    - Adds new SQL commands:  create, drop, delete, update
+    - Adds persistent aliases.
+    - Adds 'save' & 'restore' commands.
+    - Fixes command line completion.
+
+ -- Steve Kemp <steve@steve.org.uk>  Friday, 30 Nov 2007 22:24:21 +0000
+
 asql (0.5-3) stable; urgency=low
 
   * Applied patch from Andrew Pollock:
