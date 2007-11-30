@@ -29,6 +29,8 @@ asql - Provide an SQL interface to Apache logfiles.
 
 =over 8
 
+=item Persistent alias definitions.
+
 =item Command line completion
 
 =item Command history
@@ -101,9 +103,11 @@ The LICENSE file contains the full text of the license.
 
 use strict;
 use warnings;
+use Data::Dumper;
 use DBI;
 use English;
 use Getopt::Long;
+use File::Copy qw/copy/;
 use File::Temp qw/tempfile/;
 use Pod::Usage;
 
@@ -111,7 +115,7 @@ use Pod::Usage;
 #
 #  Release number of this script.
 #
-my $RELEASE   = '0.5';
+my $RELEASE   = '0.6';
 
 
 #
@@ -119,6 +123,24 @@ my $RELEASE   = '0.5';
 # default values.
 #
 my %CONFIG;
+
+#
+#  Name of default save database
+#
+$CONFIG{'savedb'} = $ENV{'HOME'} . "/.asql.db";
+
+#
+#  Name of alias filename.
+#
+$CONFIG{'aliases'} = $ENV{'HOME'} . "/.asql.aliases";
+
+
+
+#
+#  Aliases..
+#
+my %ALIASES;
+
 
 
 
@@ -132,6 +154,13 @@ my %CONFIG;
 #
 my %dispatch =
   (
+   "alias" =>
+     {
+        sub => \&do_alias,
+       args => "[name sql...]",
+       help => "Define a persistent alias, or with no arguments list those present\nIf no arguments are given all current aliases, as loaded from the\nfile $CONFIG{'aliases'} are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
+       info => "Define, or view, persistent aliases.",
+     },
    "load" =>
      {
         sub => \&do_load,
@@ -157,6 +186,20 @@ my %dispatch =
         sub => \&do_exit,
        help => "Exit this shell.",
        info => "Exit this shell.",
+     },
+   "restore" =>
+     {
+      sub  => \&do_restore,
+      args => '[filename]',
+      help => "Load a saved SQLite database.\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
+      info => "Save the temporary database.",
+     },
+   "save" =>
+     {
+        sub  => \&do_save,
+        args => '[filename]',
+        help => "Save the temporary SQLite database which was create at startup time\nThis means you won't need to wait for the realatively slow logfile parsing at startp\nUse the 'restore' command to reload this database in the future.",
+        info => "Save the temporary database.",
      },
    "select" =>
      {
@@ -193,6 +236,12 @@ parseCommandLineArguments();
 # Sanity check our perl module availability.
 #
 sanityCheck();
+
+
+#
+#  Load any aliases
+#
+loadAliases();
 
 
 #
@@ -318,6 +367,60 @@ sub sanityCheck
 
 =begin doc
 
+  Load any persistent aliases which might be present.
+
+=end doc
+
+=cut
+
+sub loadAliases
+{
+    # no file == no aliases
+    return if ( ! -e $CONFIG{'aliases'} );
+
+    #read the file.
+    my $aliases = '';
+
+    open( INPUT, "<", $CONFIG{'aliases' } )
+      or die "Failed to read aliases file $CONFIG{'aliases'} : $!";
+
+    foreach my $line ( <INPUT> )
+    {
+        $aliases .= $line if ( defined( $line ) );
+    }
+    close( INPUT );
+
+    my $VAR1 = undef;
+    my $f = eval( $aliases );
+    %ALIASES= %$f if ( $f );
+}
+
+
+
+
+=begin doc
+
+  Dump out any saved aliases.
+
+=end doc
+
+=cut
+
+sub saveAliases
+{
+    open( INPUT, ">", $CONFIG{'aliases' } )
+      or die "Failed to write aliases file $CONFIG{'aliases'} : $!";
+
+    print INPUT Dumper( \%ALIASES );
+
+    close( INPUT );
+}
+
+
+
+
+=begin doc
+
  Show the startup banner for the shell.
 
 =end doc
@@ -357,6 +460,7 @@ sub createTerminal
     #  Add all commands.
     #
     push @cmds, ( keys %dispatch );
+    push @cmds, ( keys %ALIASES );
 
     #
     #  Add completion
@@ -465,30 +569,8 @@ sub runMainLoop
         $line =~ s/^\s+//;
         $line =~ s/\s+$//;
 
-        # If we have arguments then split them up.
-        my ($word, @args) = split( /[ \t]/, $line );
-
-        # Lookup command in our dispatch table.
-        my $cmd = $dispatch{ lc( $word ) };
-
-        if ( $cmd )
-        {
-            # Call the function with any arguments we might have.
-            $cmd->{'sub'}->( join( " ", @args ) );
-
-            # Add a successful line to our history, if we can.
-            if ( UNIVERSAL::can( $term, 'add_history' ) )
-            {
-                $term->add_history( $line );
-            }
-        }
-        else
-        {
-            if ( defined( $word ) && length( $word ) )
-            {
-                print "Unknown command: '$word' - type 'help' for help.\n";
-            }
-        }
+        # process the input
+        processLine( $line );
     }
 
     #
@@ -498,6 +580,92 @@ sub runMainLoop
 }
 
 
+sub processLine
+{
+    my( $line ) = ( @_ );
+
+    # If we have arguments then split them up.
+    my ($word, @args) = split( /[ \t]/, $line );
+
+    # Lookup command in our dispatch table.
+    my $cmd = $dispatch{ lc( $word ) };
+
+    if ( $cmd )
+    {
+        # Call the function with any arguments we might have.
+        $cmd->{'sub'}->( join( " ", @args ) );
+
+        # Add a successful line to our history, if we can.
+        if ( UNIVERSAL::can( $term, 'add_history' ) )
+        {
+            $term->add_history( $line );
+        }
+    }
+    else
+    {
+        #
+        #  Catch alias
+        #
+        if ( $ALIASES{ $word } )
+        {
+            #
+            #  Call ourself to process the line.
+            #
+            processLine( $ALIASES{$word} );
+
+            #
+            # Add a successful line to our history, if we can.
+            #
+            if ( UNIVERSAL::can( $term, 'add_history' ) )
+            {
+                $term->add_history( $line );
+            }
+
+        }
+        else
+        {
+            if ( defined( $word ) && length( $word ) )
+            {
+                print "Unknown command: '$word' - type 'help' for help.\n";
+            }
+        }
+    }
+}
+
+=begin doc
+
+  Show, or define a new alias
+
+=end doc
+
+=cut
+
+sub do_alias
+{
+    my( $line ) = ( @_ );
+
+    if ( !defined( $line ) || !length( $line ) )
+    {
+        my $count = 0;
+        foreach my $name ( keys %ALIASES )
+        {
+            print "ALIAS $name $ALIASES{$name}\n";
+            $count += 1;
+        }
+        print "No aliases are defined.\n" unless( $count );
+        return;
+    }
+
+    #
+    #  Define a new one
+    #
+    my( $name, @rest ) = split( / /, $line );
+
+    my $value = join( " ", @rest );
+    print "Saving '$name' = '$value'\n";
+    delete $ALIASES{$name};
+    $ALIASES{$name} = $value if ( defined( $value ) && ( length($value) ) );
+}
 
 
 
@@ -536,7 +704,13 @@ sub do_exit
     #
     #  Remove it
     #
-    unlink( $DBIFILE ) if ( -e $DBIFILE );
+    unlink( $DBIFILE ) if ( defined( $DBIFILE ) && ( -e $DBIFILE ) );
+
+    #
+    #  Save any aliases
+    #
+    saveAliases();
+
 
     exit;
 }
@@ -675,6 +849,89 @@ sub do_load
         }
     }
 }
+
+
+
+
+=begin doc
+
+  reconnect to a named databae.
+
+=end doc
+
+=cut
+
+sub do_restore
+{
+    my( $file ) = ( @_ );
+
+    $file = $CONFIG{'savedb'} if ( ( !defined( $file ) ) || ( !length( $file ) ) );
+
+    if ( ! -e $file )
+    {
+        print "The restore file dosen't exist: $file\n";
+        return;
+    }
+
+    #
+    #  Disconnect
+    #
+    if ( $CONFIG{'dbi'} &&
+         $CONFIG{'dbi'}->ping() )
+    {
+        $CONFIG{'dbi'}->disconnect();
+    }
+
+    #
+    #  Re-connect
+    #
+    $CONFIG{'dbi'} = DBI->connect_cached( "dbi:SQLite:dbname=$file", "", "" );
+
+    #
+    #  fake a load - so that we may seleect.
+    #
+    $CONFIG{'loaded'} += 1;
+}
+
+
+
+=begin doc
+
+  Save the current temporary SQLite database to a file
+
+=end doc
+
+=cut
+
+sub do_save
+{
+    my( $file ) = ( @_ );
+
+    $file = $CONFIG{'savedb'} if ( ( !defined( $file ) ) || ( !length( $file ) ) );
+
+    print "Saving to : $file\n";
+
+    #
+    #  Disconnect
+    #
+    if ( $CONFIG{'dbi'} &&
+         $CONFIG{'dbi'}->ping() )
+    {
+        $CONFIG{'dbi'}->disconnect();
+    }
+
+    #
+    #  Copy the file
+    #
+    File::Copy::copy( $DBIFILE, $file );
+
+    #
+    #  Reconnect
+    #
+    $CONFIG{'dbi'} = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+}
+
+
 
 
 =begin doc
@@ -869,6 +1126,10 @@ sub loadFile
             $ver = $1 if ( $ver =~ /HTTP\/([0-9\.]+)/ );
 
             $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent, $ver );
+        }
+        else
+        {
+            print "Ignored: $line\n";
         }
     }
 
