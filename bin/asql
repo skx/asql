@@ -496,6 +496,10 @@ sub completion
         return $term->completion_matches($text,
                                          $attribs->{'filename_completion_function'});
     }
+    else
+    {
+        return( grep( /\Q^$text/, keys %dispatch, keys %ALIASES ) );
+    }
 }
 
 
