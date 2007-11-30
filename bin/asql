@@ -734,6 +734,9 @@ sub processLine
     # If we have arguments then split them up.
     my ($word, @args) = split( /[ \t]/, $line );
 
+    # make sure we did receive a command
+    return if ( !$word );
+
     # Lookup command in our dispatch table.
     my $cmd = $dispatch{ lc( $word ) };
 
