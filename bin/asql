@@ -11,11 +11,16 @@ asql - Provide an SQL interface to Apache logfiles.
 
   asql [options]
 
-  Options:
+  General Options:
 
    --help       Show brief help intstructions.
    --manual     Show more complete help.
    --version    Show the version of the software.
+
+  Options:
+
+   --file       Rather than running as a shell read commands from a named file.
+   --quiet      Don't show the banner at startup.
 
 =cut
 
@@ -327,7 +332,22 @@ loadHistory( $term );
 #
 #  NOTE: this never returns.
 #
-runMainLoop( $term );
+if ( !$CONFIG{'file'} )
+{
+    runMainLoop( $term );
+}
+else
+{
+    open( INPUT, "<", $CONFIG{'file'} )
+      or die "Failed to open $CONFIG{'file'} - $!";
+    while(my $line = <INPUT> )
+    {
+        chomp( $line );
+        processLine( $line ) if (defined($line) && length($line));
+    }
+    close(INPUT);
+    do_exit();
+}
 
 
 
@@ -360,9 +380,11 @@ sub parseCommandLineArguments
     #  Parse options.
     #
     GetOptions(
-               "help",      \$SHOW_HELP,
-               "manual",    \$SHOW_MANUAL,
-               "version",   \$SHOW_VERSION,
+               "help",     \$SHOW_HELP,
+               "manual",   \$SHOW_MANUAL,
+               "version",  \$SHOW_VERSION,
+               "file=s",   \$CONFIG{'file'},
+               "quiet",    \$CONFIG{'quiet'},
              );
 
     pod2usage(1) if $SHOW_HELP;
@@ -538,6 +560,8 @@ sub runQuery
 
 sub showBanner
 {
+    return if ( $CONFIG{'quiet'} );
+
     print "asql v$RELEASE - type 'help' for help.\n";
 }
 
