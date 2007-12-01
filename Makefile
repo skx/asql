@@ -19,6 +19,7 @@ stubb:
 	@echo "Valid targets are"
 	@echo " "
 	@echo " clean   - Remove temporary files"
+	@echo " commands - Make our command reference."
 	@echo " diff    - See differences from the remote repository"
 	@echo " install - Install the scripts into /etc"
 	@echo " release - Build a tarball"
