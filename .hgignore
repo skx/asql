@@ -3,3 +3,4 @@ build-stamp
 debian/asql
 debian/asql/*
 debian/files
+COMMANDS

@@ -31,6 +31,9 @@ clean:
 	-find . -name 'build-stamp' -delete
 
 
+commands:
+	perl ./bin/make-cmds ./bin/asql > ./COMMANDS
+
 diff:
 	hg diff 2>/dev/null
 
@@ -40,7 +43,7 @@ install:
 	chmod 755 ${PREFIX}/usr/bin/asql
 
 
-release: clean
+release: clean commands
 	rm -rf $(DIST_PREFIX)/$(BASE)-$(VERSION)
 	rm -f $(DIST_PREFIX)/$(BASE)-$(VERSION).tar.gz
 	cp -R . $(DIST_PREFIX)/$(BASE)-$(VERSION)

@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+#
+#  This is a quick hack which will read the specified asql file and
+# output a complete list of all commands to STDOUT.
+#
+#  It is designed to create the documentation for the shell automatically.
+#
+# Steve
+# --
+#
+
+
+
+#
+#  We are called with a single argument - the path to 'asql'.
+#
+my $file = shift;
+die "No file"                unless( defined( $file ) );
+die "File not found - $file" unless( -e $file );
+
+
+
+#
+#  Read the text
+#
+my $text = '';
+my $in = 0;
+
+open( INPUT, "<", $file )
+  or die "Failed to open $file -$!";
+foreach my $line ( <INPUT> )
+{
+    next if ( !$line );
+    chomp( $line );
+    next if ( !$line );
+
+    if ( $in )
+    {
+        if ( $line =~ /END_COMMAND_TABLE/ )
+        {
+            $in = 0;
+        }
+        else
+        {
+            $text .= $line . "\n";
+        }
+    }
+    else
+    {
+        if ( $line =~ /START_COMMAND_TABLE/ )
+        {
+            $in = 1;
+        }
+    }
+}
+close( INPUT );
+
+
+
+#
+#  Hack: declare our own dispatch table and make the read text
+# refer to it.
+#
+my %dispatch;
+$text =~ s/my \%dispatch/\%dispatch/g;
+eval $text;
+
+
+#
+#  Now output the text.
+#
+foreach my $key ( sort keys %dispatch )
+{
+    my $cmd   = $key;
+    my $under = "-" x length( $key );
+    my $text  = $dispatch{$key}->{'help'};
+
+    print <<EOF;
+$cmd
+$under
+
+$text
+
+
+EOF
+}

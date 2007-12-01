@@ -164,13 +164,15 @@ my %ALIASES;
 # commands help text.
 #
 #
+#  START_COMMAND_TABLE
+#
 my %dispatch =
   (
    "alias" =>
      {
         sub => \&do_alias,
        args => "[name sql...]",
-       help => "Define a persistent alias, or with no arguments list those present\nIf no arguments are given all current aliases, as loaded from the\nfile $CONFIG{'aliases'} are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
+       help => "Define a persistent alias, or list those aliases currently defined.\n\nIf no arguments are given all current aliases, as loaded from the\nalias file are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
        info => "Define, or view, persistent aliases.",
      },
    "alter" =>
@@ -207,7 +209,7 @@ my %dispatch =
      {
         sub => \&do_load,
        args => "[file|glob]",
-       help => "Load an Apache logfile into the logs table\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be auomtically decompressed and loaded.",
+       help => "Load an Apache logfile into the currently open table.\n\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be automtically decompressed and loaded.\n\nTo save time parsing the logfile(s) specified you may save the database once\nit has been populated via 'save' and 'restore'.",
        info => "Load an Apache logfile.",
      },
    "exit" =>
@@ -220,7 +222,7 @@ my %dispatch =
      {
         sub => \&do_help,
        args => "[command]",
-       help => "Show help about the specified command, or all commands if no command is specified.",
+       help => "If a command is given then show help about that command.\n\nIf no command is specified give an overview of all available commands.\n",
        info => "Show general, or command-specific, help information.",
      },
    "quit" => # Dupe: exit
@@ -233,14 +235,14 @@ my %dispatch =
      {
       sub  => \&do_restore,
       args => '[filename]',
-      help => "Load a saved SQLite database.\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
+      help => "Load a SQLite database which was previously saved via 'save'.\n\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
       info => "Save the temporary database.",
      },
    "save" =>
      {
         sub  => \&do_save,
         args => '[filename]',
-        help => "Save the temporary SQLite database which was create at startup time\nThis means you won't need to wait for the realatively slow logfile parsing at startp\nUse the 'restore' command to reload this database in the future.",
+        help => "Save the temporary SQLite database which was create at startup time.\n\nThis means you won't need to wait for the relatively slow logfile parsing\nat startup.  Use the 'restore' command to reload this database in the future.",
         info => "Save the temporary database.",
      },
    "select" =>
@@ -263,7 +265,9 @@ my %dispatch =
      },
   );
 
-
+#
+#  END_COMMAND_TABLE
+#
 
 ####
 #
