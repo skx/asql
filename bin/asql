@@ -618,7 +618,10 @@ sub createTerminal
 
 =begin doc
 
-  Filename completion for the second arg - if the first argument is "load".
+  Here we perform filename completion for the second arg - if the first
+ argument is "load" or "restore".
+
+  If not we complete based upon our command names, and any loaded aliases.
 
 =end doc
 
@@ -725,7 +728,8 @@ sub runMainLoop
 
 =begin doc
 
-  Process a single line which has been read from the console.
+  Process a single line which has been read from the console, or from
+ a script file.
 
 =end doc
 
@@ -785,7 +789,6 @@ sub processLine
         }
     }
 }
-
 
 
 
