@@ -342,14 +342,14 @@ if ( !$CONFIG{'file'} )
 }
 else
 {
-    open( INPUT, "<", $CONFIG{'file'} )
+    open( INPUTFILE, "<", $CONFIG{'file'} )
       or die "Failed to open $CONFIG{'file'} - $!";
-    while(my $line = <INPUT> )
+    while(my $line = <INPUTFILE> )
     {
         chomp( $line );
         processLine( $line ) if (defined($line) && length($line));
     }
-    close(INPUT);
+    close(INPUTFILE);
     do_exit();
 }
 
