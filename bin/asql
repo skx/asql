@@ -89,6 +89,17 @@ asql - Provide an SQL interface to Apache logfiles.
 =cut
 
 
+=head1 FILES
+
+ When the shell starts up it will read an intepret an initialisation
+ file of ~/.asqlrc - any commands present in that file will be executed
+ prior to the launch of the interactive session.
+
+ All aliases will be saved and rad from ~/.asqli.aliases.
+
+
+=cut
+
 =head1 AUTHOR
 
  Steve
@@ -145,6 +156,11 @@ $CONFIG{'savedb'} = $ENV{'HOME'} . "/.asql.db";
 #  Name of alias filename.
 #
 $CONFIG{'aliases'} = $ENV{'HOME'} . "/.asql.aliases";
+
+#
+#  Name of the RC file.
+#
+$CONFIG{'startup'} = $ENV{'HOME'} . "/.asqlrc";
 
 
 
@@ -208,7 +224,7 @@ my %dispatch =
    "load" =>
      {
         sub => \&do_load,
-       args => "[file|glob]",
+       args => "[file|glob] [--label=name",
        help => "Load an Apache logfile into the currently open table.\n\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be automtically decompressed and loaded.\n\nTo save time parsing the logfile(s) specified you may save the database once\nit has been populated via 'save' and 'restore'.",
        info => "Load an Apache logfile.",
      },
@@ -268,6 +284,22 @@ my %dispatch =
 #
 #  END_COMMAND_TABLE
 #
+
+
+
+my %months;
+$months{'jan'} = 1;
+$months{'feb'} = 2;
+$months{'mar'} = 3;
+$months{'apr'} = 4;
+$months{'may'} = 5;
+$months{'jun'} = 6;
+$months{'jul'} = 7;
+$months{'aug'} = 8;
+$months{'sep'} = 9;
+$months{'oct'} = 10;
+$months{'nov'} = 11;
+$months{'dec'} = 11;
 
 ####
 #
@@ -330,26 +362,29 @@ my $attribs = $term->Attribs;
 loadHistory( $term );
 
 
+#
+#  If the user has a startup-file then load that prior to running
+# any interactive/scripted session.
+#
+if ( -e $CONFIG{'startup'} )
+{
+    processFile( $CONFIG{'startup'} );
+}
+
+
 
 #
 #  Run our command loop.
 #
-#  NOTE: this never returns.
-#
 if ( !$CONFIG{'file'} )
 {
+    #  NOTE: this never returns.
     runMainLoop( $term );
 }
 else
 {
-    open( INPUTFILE, "<", $CONFIG{'file'} )
-      or die "Failed to open $CONFIG{'file'} - $!";
-    while(my $line = <INPUTFILE> )
-    {
-        chomp( $line );
-        processLine( $line ) if (defined($line) && length($line));
-    }
-    close(INPUTFILE);
+    # Run the scripted file, and save our history.
+    processFile( $CONFIG{'file'} );
     do_exit();
 }
 
@@ -677,6 +712,30 @@ sub loadHistory
 
 
 
+=begin doc
+
+  Read an intepret the given file, if present.
+
+=end doc
+
+=cut
+
+sub processFile
+{
+    my ( $file ) = ( @_ );
+
+    open( INPUTFILE, "<",  $file )
+      or die "Failed to open $file - $!";
+
+    while(my $line = <INPUTFILE> )
+    {
+        chomp( $line );
+        processLine( $line ) if (defined($line) && length($line));
+    }
+    close(INPUTFILE);
+}
+
+
 
 =begin doc
 
@@ -981,20 +1040,39 @@ sub do_load
             local $CONFIG{'dbi'}->{PrintError} = 0;
             $CONFIG{'dbi'}->do("DROP TABLE logs");
         };
-        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version);" );
+        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, label);" );
 
         $CONFIG{'loaded'} = 1;
     }
 
     #
+    #  Did we get a label?
+    #
+    my $label = '';
+    my @FILES;
+    foreach my $arg ( @files )
+    {
+        if ( $arg =~ /(.*)([ \t]+)--label=(.*)/ )
+        {
+            $arg   = $1;
+            $label = $3;
+        }
+        push( @FILES, $arg );
+    }
+
+
+    #
     #  Now load each file.
     #
-    foreach my $file ( @files )
+    foreach my $file ( @FILES )
     {
+        # skip arguments
+        next if ( $file =~ /^--/ );
+
         # file exists - load it.
         if ( -e $file )
         {
-            loadFile( $file );
+            loadFile( $file, $label );
         }
         else
         {
@@ -1003,7 +1081,7 @@ sub do_load
             {
                 if ( -e $f )
                 {
-                    loadFile( $f );
+                    loadFile( $f, $label );
                 }
                 else
                 {
@@ -1165,6 +1243,8 @@ sub do_show
   referer - The HTTP referer (sic).
   agent   - The User-Agent which made the request.
   version - The HTTP version used by this client.
+  date    - The date and time at which the request was made.
+  label   - Any label applied when the logfile was read.
 
 EOF
 }
@@ -1182,10 +1262,13 @@ EOF
 
 sub loadFile
 {
-    my( $filename ) = (@_);
+    my( $filename, $label ) = (@_);
 
     # ensure we received a logfile.
     die "No filename...." if ( ! defined( $filename ) );
+
+    # did we get a label?
+    $label = $filename unless( defined( $label ) );
 
     # status.
     print "Loading: $filename\n";
@@ -1194,7 +1277,7 @@ sub loadFile
     #  Get the database handle and prepare the insertion query.
     #
     my $dbh = $CONFIG{'dbi'};
-    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent, version ) VALUES( ?,?,?,?,?,?,?,? )" );
+    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, label ) VALUES( ?,?,?,?,?,?,?,?,?,? )" );
 
     #
     #  Open the named logfile, using a pipe for .bz2/.gz files.
@@ -1242,11 +1325,35 @@ sub loadFile
             my @in = split( / /, $req );
             my $method = $in[0];
             my $path   = $in[1];
-            my $ver    = $in[2]
-;
+            my $ver    = $in[2];
+
+            #
+            #  Parse date and time.  Minimally.
+            #
+            my $date = '';
+            if ( $line =~ /(.*)\[([^]]+)\](.*)/ )
+            {
+                my $timestr = $2;
+                if ( $timestr =~ /^([^:]+):([^ ]+)/ )
+                {
+                    my $d = $1;
+                    my $t = $2;
+
+                    if ( $d =~ /^([^\/]+)\/([^\/]+)\/(.*)/ )
+                    {
+                        my $day  = $1;
+                        my $mon  = $2;
+                        my $year = $3;
+
+                        $mon = $months{lc($mon)};
+                        $date = $year . "-" . $mon . "-" . $day . 'T' . $t;
+                    }
+                }
+            }
+
             $ver = $1 if ( $ver =~ /HTTP\/([0-9\.]+)/ );
 
-            $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent, $ver );
+            $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent, $ver, $date, $label );
         }
         else
         {
