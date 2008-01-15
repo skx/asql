@@ -1,7 +1,7 @@
 Source: asql
 Section: admin
 Priority: optional
-Maintainer: Steve Kemp <steve@steve.org.uk>
+Maintainer: Steve Kemp <skx@debian.org>
 Build-Depends: debhelper (>> 4.0.0)
 Standards-Version: 3.7.3
 
