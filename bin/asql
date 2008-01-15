@@ -1374,29 +1374,29 @@ sub loadFile
 
 sub parseApacheLogLine
 {
-        my $Line=shift;
-        my $Ref;
-        my $Rest;
-        my $R2;
-        ($Ref->{host},$Ref->{user},$Ref->{date},$Rest)= $Line=~m,^([^\s]+)\s+-\s+([^ ]+)\s+\[(.*?)\]\s+(.*),;
-        my @Dsplit=split(/\s+/,$Ref->{date});
-	$Ref->{diffgmt}=$Dsplit[1];
-	my @Ds2=split(/\:/,$Dsplit[0],2);
-        $Ref->{date}=$Ds2[0];
-        $Ref->{time}=$Ds2[1];
-        if ($Rest)
+    my $Line=shift;
+    my $Ref;
+    my $Rest;
+    my $R2;
+    ($Ref->{host},$Ref->{user},$Ref->{date},$Rest)= $Line=~m,^([^\s]+)\s+-\s+([^ ]+)\s+\[(.*?)\]\s+(.*),;
+    my @Dsplit=split(/\s+/,$Ref->{date});
+    $Ref->{diffgmt}=$Dsplit[1];
+    my @Ds2=split(/\:/,$Dsplit[0],2);
+    $Ref->{date}=$Ds2[0];
+    $Ref->{time}=$Ds2[1];
+    if ($Rest)
+    {
+        ($Ref->{rtype},$Ref->{file},$Ref->{proto},$Ref->{code},$Ref->{bytes},$R2)=split(/\s/,$Rest,6);
+        $Ref->{rtype}=~tr/\"//d;
+        $Ref->{proto}=~tr/\"//d;
+        if ($R2)
         {
-                ($Ref->{rtype},$Ref->{file},$Ref->{proto},$Ref->{code},$Ref->{bytes},$R2)=split(/\s/,$Rest,6);
-		$Ref->{rtype}=~tr/\"//d;
-		$Ref->{proto}=~tr/\"//d;
-                if ($R2)
-                {
-                        my @Split=split(/\"/,$R2);
-                        $Ref->{refer}=$Split[1];
-                        $Ref->{agent}=$Split[3];
-                }
+            my @Split=split(/\"/,$R2);
+            $Ref->{refer}=$Split[1];
+            $Ref->{agent}=$Split[3];
         }
-        return $Ref;
+    }
+    return $Ref;
 }
 
 
