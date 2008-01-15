@@ -138,7 +138,7 @@ use Pod::Usage;
 #
 #  Release number of this script.
 #
-my $RELEASE   = '0.6';
+my $RELEASE   = '0.8';
 
 
 #
