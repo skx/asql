@@ -1040,7 +1040,7 @@ sub do_load
             local $CONFIG{'dbi'}->{PrintError} = 0;
             $CONFIG{'dbi'}->do("DROP TABLE logs");
         };
-        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, label);" );
+        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, user, label);" );
 
         $CONFIG{'loaded'} = 1;
     }
@@ -1245,6 +1245,7 @@ sub do_show
   version - The HTTP version used by this client.
   date    - The date and time at which the request was made.
   label   - Any label applied when the logfile was read.
+  user    - The remote (authenticated) user, if any.
 
 EOF
 }
@@ -1277,7 +1278,7 @@ sub loadFile
     #  Get the database handle and prepare the insertion query.
     #
     my $dbh = $CONFIG{'dbi'};
-    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, label ) VALUES( ?,?,?,?,?,?,?,?,?,? )" );
+    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, user, label ) VALUES( ?,?,?,?,?,?,?,?,?,?,? )" );
 
     #
     #  Open the named logfile, using a pipe for .bz2/.gz files.
@@ -1309,56 +1310,45 @@ sub loadFile
     #
     #  Parse each line in a minimal fashion.
     #
-    #  TODO: Make the format configurable?
-    #
     foreach my $line ( <INPUT> )
     {
-        if ( $line =~ /^([^ \t]+)(.*)\"([^"]+)\" (\d+) (\d+|-) "([^"]+)" "([^"]+)"/ )
+        #
+        #  Parse.
+        #
+        my $results = parseApacheLogLine( $line );
+
+        #
+        #  Get the results, if they are present.
+        #
+        my $host     = $results->{'host'}  || "";
+        my $size     = $results->{'bytes'} || "";
+        my $version  = $results->{'proto'} || "";
+        my $time     = $results->{'time'}  || "";
+        my $date     = $results->{'date'}  || "";
+        my $path     = $results->{'file'}  || "";
+        my $protocol = $results->{'rtype'} || "";
+        my $agent    = $results->{'agent'} || "";
+        my $user     = $results->{'user'}  || "";
+        my $refer    = $results->{'refer'} || "";
+        my $code     = $results->{'code'}  || "";
+
+        if ( $date =~ /^([^\/]+)\/([^\/]+)\/(.*)/ )
         {
-            my $ip     = $1;
-            my $req    = $3;
-            my $status = $4;
-            my $size   = $5;
-            my $refer  = $6;
-            my $agent  = $7;
+            my $day  = $1;
+            my $mon  = $2;
+            my $year = $3;
 
-            my @in = split( / /, $req );
-            my $method = $in[0];
-            my $path   = $in[1];
-            my $ver    = $in[2];
-
-            #
-            #  Parse date and time.  Minimally.
-            #
-            my $date = '';
-            if ( $line =~ /(.*)\[([^]]+)\](.*)/ )
-            {
-                my $timestr = $2;
-                if ( $timestr =~ /^([^:]+):([^ ]+)/ )
-                {
-                    my $d = $1;
-                    my $t = $2;
-
-                    if ( $d =~ /^([^\/]+)\/([^\/]+)\/(.*)/ )
-                    {
-                        my $day  = $1;
-                        my $mon  = $2;
-                        my $year = $3;
-
-                        $mon = $months{lc($mon)};
-                        $date = $year . "-" . $mon . "-" . $day . 'T' . $t;
-                    }
-                }
-            }
-
-            $ver = $1 if ( $ver =~ /HTTP\/([0-9\.]+)/ );
-
-            $sth->execute( $ip, $path, $status, $size, $method, $refer, $agent, $ver, $date, $label );
+            $mon = $months{lc($mon)};
+            $date = $year . "-" . $mon . "-" . $day . 'T' . $time;
         }
-        else
-        {
-            print "Ignored: $line\n";
-        }
+
+
+        #
+        #  HTTP version is of the form HTTP/N.N
+        #
+        $version = $1 if ( $version =~ /HTTP\/([0-9\.]+)/ );
+
+        $sth->execute( $host, $path, $code, $size, $protocol, $refer, $agent, $version, $date, $user, $label );
     }
 
     #
@@ -1366,6 +1356,47 @@ sub loadFile
     #
     close( INPUT );
     $sth->finish();
+}
+
+
+
+=begin doc
+
+  Parse a single line of Apache logfile into a hash-reference
+ we can work with.
+
+  This code was taken directly from the CPAN module
+ Parse::AccessLogEntry by Marc Slagle.
+
+=end doc
+
+=cut
+
+sub parseApacheLogLine
+{
+        my $Line=shift;
+        my $Ref;
+        my $Rest;
+        my $R2;
+        ($Ref->{host},$Ref->{user},$Ref->{date},$Rest)= $Line=~m,^([^\s]+)\s+-\s+([^ ]+)\s+\[(.*?)\]\s+(.*),;
+        my @Dsplit=split(/\s+/,$Ref->{date});
+	$Ref->{diffgmt}=$Dsplit[1];
+	my @Ds2=split(/\:/,$Dsplit[0],2);
+        $Ref->{date}=$Ds2[0];
+        $Ref->{time}=$Ds2[1];
+        if ($Rest)
+        {
+                ($Ref->{rtype},$Ref->{file},$Ref->{proto},$Ref->{code},$Ref->{bytes},$R2)=split(/\s/,$Rest,6);
+		$Ref->{rtype}=~tr/\"//d;
+		$Ref->{proto}=~tr/\"//d;
+                if ($R2)
+                {
+                        my @Split=split(/\"/,$R2);
+                        $Ref->{refer}=$Split[1];
+                        $Ref->{agent}=$Split[3];
+                }
+        }
+        return $Ref;
 }
 
 
