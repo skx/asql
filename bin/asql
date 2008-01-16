@@ -252,7 +252,7 @@ my %dispatch =
       sub  => \&do_restore,
       args => '[filename]',
       help => "Load a SQLite database which was previously saved via 'save'.\n\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
-      info => "Save the temporary database.",
+      info => "Load a previously save'd temporary database.",
      },
    "save" =>
      {
