@@ -91,11 +91,11 @@ asql - Provide an SQL interface to Apache logfiles.
 
 =head1 FILES
 
- When the shell starts up it will read an intepret an initialisation
- file of ~/.asqlrc - any commands present in that file will be executed
- prior to the launch of the interactive session.
+ When the shell starts up it will read and intepret the initialisation
+ file of ~/.asqlrc if it exists.  Any commands present in that file
+ will be executed prior to the launch of the interactive session.
 
- All aliases will be saved and rad from ~/.asqli.aliases.
+ All aliases will be read and written to the file ~/.asql.aliases.
 
 
 =cut
@@ -111,7 +111,7 @@ asql - Provide an SQL interface to Apache logfiles.
 
 =head1 LICENSE
 
-Copyright (c) 2007 by Steve Kemp.  All rights reserved.
+Copyright (c) 2007,2008 by Steve Kemp.  All rights reserved.
 
 This module is free software;
 you can redistribute it and/or modify it under
@@ -161,6 +161,11 @@ $CONFIG{'aliases'} = $ENV{'HOME'} . "/.asql.aliases";
 #  Name of the RC file.
 #
 $CONFIG{'startup'} = $ENV{'HOME'} . "/.asqlrc";
+
+#
+#  Name of the history file
+#
+$CONFIG{'history'} = $ENV{'HOME'} . "/.asql";
 
 
 
@@ -342,14 +347,14 @@ showBanner();
 
 #
 #  Setup a signal handler to make sure we cleanup appropriately,
-# and save our aliases.
+# specifically so that we save our aliases.
 #
 $SIG{INT} = "do_exit";
 
 
 #
 #  Create the readline interface, and save the attributes away
-# so that we may use them for our completion code.
+# so that we may use them in our command completion code.
 #
 my $term    = createTerminal();
 my $attribs = $term->Attribs;
@@ -638,7 +643,7 @@ sub createTerminal
     #  Add completion
     #
     my $attribs = $term->Attribs;
-    $attribs->{completion_entry_function} = $attribs->{list_completion_function};
+    $attribs->{completion_entry_function}     = $attribs->{list_completion_function};
     $attribs->{completion_word}               = \@cmds;
     $attribs->{attempted_completion_function} = \&completion;
 
@@ -697,7 +702,7 @@ sub loadHistory
     #
     #  Load the file, if it exists, from the home directory.
     #
-    my $file = $ENV{'HOME'} . "/.asql";
+    my $file = $CONFIG{'history'};
     if ( -e $file )
     {
         #
@@ -714,7 +719,7 @@ sub loadHistory
 
 =begin doc
 
-  Read an intepret the given file, if present.
+  Read and intepret the contents of the given file, if it exists.
 
 =end doc
 
@@ -723,6 +728,12 @@ sub loadHistory
 sub processFile
 {
     my ( $file ) = ( @_ );
+
+    if ( ! -e $file )
+    {
+        print "File not found: $file\n";
+        return;
+    }
 
     open( INPUTFILE, "<",  $file )
       or die "Failed to open $file - $!";
@@ -773,7 +784,10 @@ sub runMainLoop
         $line =~ s/^\s+//;
         $line =~ s/\s+$//;
 
-        # process the input
+        # The line is empty now?
+        next if ( !length( $line ) );
+
+        # actually process the input
         processLine( $line );
     }
 
@@ -821,7 +835,7 @@ sub processLine
     else
     {
         #
-        #  Catch alias
+        #  Catch any alias definitions we might have present.
         #
         if ( $ALIASES{ $word } )
         {
@@ -904,9 +918,9 @@ sub do_alias
 sub do_exit
 {
     #
-    #  The name of the history file, inside the home directory.
+    #  The history file
     #
-    my $file = $ENV{'HOME'} . "/.asql";
+    my $file = $CONFIG{'history'};
 
     #
     #  Save the history if the term module can.
@@ -1341,7 +1355,7 @@ sub loadFile
         if ( $date =~ /^([^\/]+)\/([^\/]+)\/(.*)/ )
         {
             #
-            #  If cached lookup.
+            #  If cached then use that value..
             #
             if ( $cache{$date} )
             {
@@ -1451,7 +1465,7 @@ END {
 
 =head1 LICENSE
 
-Copyright (c) 2007 by Steve Kemp.  All rights reserved.
+Copyright (c) 2007-2008 by Steve Kemp.  All rights reserved.
 
 This module is free software;
 you can redistribute it and/or modify it under
