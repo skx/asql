@@ -434,15 +434,18 @@ sub parseCommandLineArguments
     #
     #  Parse options.
     #
-    GetOptions(
-                "help",      \$SHOW_HELP,
-                "manual",    \$SHOW_MANUAL,
-                "version",   \$SHOW_VERSION,
-                "file=s",    \$CONFIG{ 'file' },
-                "load=s",    \$CONFIG{ 'load' },
-                "execute=s", \$CONFIG{ 'execute' },
-                "quiet",     \$CONFIG{ 'quiet' },
-    );
+    exit
+      if (
+           !GetOptions(
+                        "help",      \$SHOW_HELP,
+                        "manual",    \$SHOW_MANUAL,
+                        "version",   \$SHOW_VERSION,
+                        "file=s",    \$CONFIG{ 'file' },
+                        "load=s",    \$CONFIG{ 'load' },
+                        "execute=s", \$CONFIG{ 'execute' },
+                        "quiet",     \$CONFIG{ 'quiet' },
+           )
+      );
 
     pod2usage(1) if $SHOW_HELP;
     pod2usage( -verbose => 2 ) if $SHOW_MANUAL;
