@@ -387,7 +387,7 @@ if ( $CONFIG{ 'load' } )
 if ( $CONFIG{ 'execute' } )
 {
     processLine( $CONFIG{ 'execute' } );
-    exit;
+    do_exit();
 }
 
 #
