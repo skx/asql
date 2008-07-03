@@ -130,8 +130,6 @@ The LICENSE file contains the full text of the license.
 
 
 
-
-
 use strict;
 use warnings;
 use Data::Dumper;
@@ -146,7 +144,7 @@ use Pod::Usage;
 #
 #  Release number of this script.
 #
-my $RELEASE   = '0.8';
+my $RELEASE = '0.8';
 
 
 #
@@ -158,22 +156,22 @@ my %CONFIG;
 #
 #  Name of default save database
 #
-$CONFIG{'savedb'} = $ENV{'HOME'} . "/.asql.db";
+$CONFIG{ 'savedb' } = $ENV{ 'HOME' } . "/.asql.db";
 
 #
 #  Name of alias filename.
 #
-$CONFIG{'aliases'} = $ENV{'HOME'} . "/.asql.aliases";
+$CONFIG{ 'aliases' } = $ENV{ 'HOME' } . "/.asql.aliases";
 
 #
 #  Name of the RC file.
 #
-$CONFIG{'startup'} = $ENV{'HOME'} . "/.asqlrc";
+$CONFIG{ 'startup' } = $ENV{ 'HOME' } . "/.asqlrc";
 
 #
 #  Name of the history file
 #
-$CONFIG{'history'} = $ENV{'HOME'} . "/.asql";
+$CONFIG{ 'history' } = $ENV{ 'HOME' } . "/.asql";
 
 
 
@@ -181,7 +179,6 @@ $CONFIG{'history'} = $ENV{'HOME'} . "/.asql";
 #  Aliases..
 #
 my %ALIASES;
-
 
 
 
@@ -195,104 +192,95 @@ my %ALIASES;
 #
 #  START_COMMAND_TABLE
 #
-my %dispatch =
-  (
-   "alias" =>
-     {
-        sub => \&do_alias,
-       args => "[name sql...]",
-       help => "Define a persistent alias, or list those aliases currently defined.\n\nIf no arguments are given all current aliases, as loaded from the\nalias file are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
-       info => "Define, or view, persistent aliases.",
-     },
-   "alter" =>
-     {
-        sub  => sub { my ( $args ) = (@_); do_sql( "alter", $args ); },
+my %dispatch = (
+    "alias" => {
+        sub  => \&do_alias,
+        args => "[name sql...]",
+        help =>
+"Define a persistent alias, or list those aliases currently defined.\n\nIf no arguments are given all current aliases, as loaded from the\nalias file are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
+        info => "Define, or view, persistent aliases.",
+    },
+    "alter" => {
+        sub => sub {my ($args) = (@_); do_sql( "alter", $args );},
         help => "Run an ALTER query against the database.\n",
         info => "Run an ALTER query against the database.",
-     },
-   "create" =>
-     {
-        sub  => sub { my ( $args ) = (@_); do_sql( "create", $args ); },
+    },
+    "create" => {
+        sub => sub {my ($args) = (@_); do_sql( "create", $args );},
         help => "Run a CREATE query against the database.\n",
         info => "Run a CREATE query against the database.",
-     },
-   "delete" =>
-     {
-        sub  => sub { my ( $args ) = (@_); do_sql( "delete", $args ); },
+    },
+    "delete" => {
+        sub => sub {my ($args) = (@_); do_sql( "delete", $args );},
         help => "Run a DELETE query against the database.\n",
         info => "Run a DELETE query against the database.",
-     },
-   "drop" =>
-     {
-        sub  => sub { my ( $args ) = (@_); do_sql( "drop", $args ); },
+    },
+    "drop" => {
+        sub => sub {my ($args) = (@_); do_sql( "drop", $args );},
         help => "Run a DROP query against the database.\n",
         info => "Run a DROP query against the database.",
-     },
-   "insert" =>
-     {
-        sub  => sub { my ( $args ) = (@_); do_sql( "insert", $args ); },
+    },
+    "insert" => {
+        sub => sub {my ($args) = (@_); do_sql( "insert", $args );},
         help => "Run an INSERT query against the database.\n",
         info => "Run an INSERT query against the database.",
-     },
-   "load" =>
-     {
-        sub => \&do_load,
-       args => "[file|glob] [--label=name",
-       help => "Load an Apache logfile into the currently open table.\n\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be automtically decompressed and loaded.\n\nTo save time parsing the logfile(s) specified you may save the database once\nit has been populated via 'save' and 'restore'.",
-       info => "Load an Apache logfile.",
-     },
-   "exit" =>
-     {
-        sub => \&do_exit,
-       help => "Exit the shell.",
-       info => "Exit the shell.",
-     },
-   "help" =>
-     {
-        sub => \&do_help,
-       args => "[command]",
-       help => "If a command is given then show help about that command.\n\nIf no command is specified give an overview of all available commands.\n",
-       info => "Show general, or command-specific, help information.",
-     },
-   "quit" => # Dupe: exit
-     {
-        sub => \&do_exit,
-       help => "Exit this shell.",
-       info => "Exit this shell.",
-     },
-   "restore" =>
-     {
-      sub  => \&do_restore,
-      args => '[filename]',
-      help => "Load a SQLite database which was previously saved via 'save'.\n\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
-      info => "Load a previously save'd temporary database.",
-     },
-   "save" =>
-     {
+    },
+    "load" => {
+        sub  => \&do_load,
+        args => "[file|glob] [--label=name",
+        help =>
+"Load an Apache logfile into the currently open table.\n\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be automtically decompressed and loaded.\n\nTo save time parsing the logfile(s) specified you may save the database once\nit has been populated via 'save' and 'restore'.",
+        info => "Load an Apache logfile.",
+    },
+    "exit" => {
+                sub  => \&do_exit,
+                help => "Exit the shell.",
+                info => "Exit the shell.",
+    },
+    "help" => {
+        sub  => \&do_help,
+        args => "[command]",
+        help =>
+"If a command is given then show help about that command.\n\nIf no command is specified give an overview of all available commands.\n",
+        info => "Show general, or command-specific, help information.",
+    },
+    "quit" =>    # Dupe: exit
+      {
+        sub  => \&do_exit,
+        help => "Exit this shell.",
+        info => "Exit this shell.",
+      },
+    "restore" => {
+        sub  => \&do_restore,
+        args => '[filename]',
+        help =>
+"Load a SQLite database which was previously saved via 'save'.\n\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
+        info => "Load a previously save'd temporary database.",
+    },
+    "save" => {
         sub  => \&do_save,
         args => '[filename]',
-        help => "Save the temporary SQLite database which was create at startup time.\n\nThis means you won't need to wait for the relatively slow logfile parsing\nat startup.  Use the 'restore' command to reload this database in the future.",
+        help =>
+"Save the temporary SQLite database which was create at startup time.\n\nThis means you won't need to wait for the relatively slow logfile parsing\nat startup.  Use the 'restore' command to reload this database in the future.",
         info => "Save the temporary database.",
-     },
-   "select" =>
-     {
-        sub  => sub { my ( $args ) = (@_); do_sql( "select", $args ); },
-        help => "Run a SELECT query against the database.\nExample queries\n\n  SELECT distinct(source) FROM logs\n\nSELECT referer,COUNT(referer) AS number from logs GROUP BY referer ORDER BY number DESC,referer\n\netc.",
+    },
+    "select" => {
+        sub => sub {my ($args) = (@_); do_sql( "select", $args );},
+        help =>
+"Run a SELECT query against the database.\nExample queries\n\n  SELECT distinct(source) FROM logs\n\nSELECT referer,COUNT(referer) AS number from logs GROUP BY referer ORDER BY number DESC,referer\n\netc.",
         info => "Run a SELECT query against the database.",
-     },
-   "show" =>
-     {
-        sub  => \&do_show,
-        help => "Show the structure of the database.",
-        info => "Show the structure of the database.",
-     },
-   "update" =>
-     {
-        sub  => sub { my ( $args ) = (@_); do_sql( "update", $args ); },
+    },
+    "show" => {
+                sub  => \&do_show,
+                help => "Show the structure of the database.",
+                info => "Show the structure of the database.",
+    },
+    "update" => {
+        sub => sub {my ($args) = (@_); do_sql( "update", $args );},
         help => "Run an UPDATE query against the database.\n",
         info => "Run an UPDATE query against the database.",
-     },
-  );
+    },
+);
 
 #
 #  END_COMMAND_TABLE
@@ -301,18 +289,18 @@ my %dispatch =
 
 
 my %months;
-$months{'jan'} = 1;
-$months{'feb'} = 2;
-$months{'mar'} = 3;
-$months{'apr'} = 4;
-$months{'may'} = 5;
-$months{'jun'} = 6;
-$months{'jul'} = 7;
-$months{'aug'} = 8;
-$months{'sep'} = 9;
-$months{'oct'} = 10;
-$months{'nov'} = 11;
-$months{'dec'} = 11;
+$months{ 'jan' } = 1;
+$months{ 'feb' } = 2;
+$months{ 'mar' } = 3;
+$months{ 'apr' } = 4;
+$months{ 'may' } = 5;
+$months{ 'jun' } = 6;
+$months{ 'jul' } = 7;
+$months{ 'aug' } = 8;
+$months{ 'sep' } = 9;
+$months{ 'oct' } = 10;
+$months{ 'nov' } = 11;
+$months{ 'dec' } = 11;
 
 ####
 #
@@ -344,7 +332,7 @@ loadAliases();
 #
 # Create a temporary database file
 #
-my (undef, $DBIFILE) = File::Temp::tempfile();
+my ( undef, $DBIFILE ) = File::Temp::tempfile();
 
 
 #
@@ -357,7 +345,7 @@ showBanner();
 #  Setup a signal handler to make sure we cleanup appropriately,
 # specifically so that we save our aliases.
 #
-$SIG{INT} = "do_exit";
+$SIG{ INT } = "do_exit";
 
 
 #
@@ -372,43 +360,44 @@ my $attribs = $term->Attribs;
 #
 #  Load any command history which might be present.
 #
-loadHistory( $term );
+loadHistory($term);
 
 
 #
 #  If the user has a startup-file then load that prior to running
 # any interactive/scripted session.
 #
-if ( -e $CONFIG{'startup'} )
+if ( -e $CONFIG{ 'startup' } )
 {
-    processFile( $CONFIG{'startup'} );
+    processFile( $CONFIG{ 'startup' } );
 }
 
 
 #
 #  Load data?
 #
-if ( $CONFIG{'load'} )
+if ( $CONFIG{ 'load' } )
 {
-    do_load( $CONFIG{'load'} );
+    do_load( $CONFIG{ 'load' } );
 }
 
 #
 #  Execute directly?
 #
-if ( $CONFIG{'execute'} )
+if ( $CONFIG{ 'execute' } )
 {
-    processLine( $CONFIG{'execute'} );
+    processLine( $CONFIG{ 'execute' } );
     exit;
 }
 
 #
 #  Run the contents of a named file?
 #
-if ( $CONFIG{'file'} )
+if ( $CONFIG{ 'file' } )
 {
+
     # Run the scripted file, and save our history.
-    processFile( $CONFIG{'file'} );
+    processFile( $CONFIG{ 'file' } );
     do_exit();
 }
 
@@ -417,7 +406,7 @@ if ( $CONFIG{'file'} )
 #  OK interactive usage.
 #  NOTE: this never returns.
 #
-runMainLoop( $term );
+runMainLoop($term);
 
 
 
@@ -425,10 +414,6 @@ runMainLoop( $term );
 #  Never reached
 #
 exit;
-
-
-
-
 
 
 
@@ -442,33 +427,32 @@ exit;
 
 sub parseCommandLineArguments
 {
-    my $SHOW_HELP      = 0;
-    my $SHOW_MANUAL    = 0;
-    my $SHOW_VERSION   = 0;
+    my $SHOW_HELP    = 0;
+    my $SHOW_MANUAL  = 0;
+    my $SHOW_VERSION = 0;
 
     #
     #  Parse options.
     #
     GetOptions(
-               "help",     \$SHOW_HELP,
-               "manual",   \$SHOW_MANUAL,
-               "version",  \$SHOW_VERSION,
-               "file=s",   \$CONFIG{'file'},
-               "load=s",   \$CONFIG{'load'},
-               "execute=s",\$CONFIG{'execute'},
-               "quiet",    \$CONFIG{'quiet'},
-             );
+                "help",      \$SHOW_HELP,
+                "manual",    \$SHOW_MANUAL,
+                "version",   \$SHOW_VERSION,
+                "file=s",    \$CONFIG{ 'file' },
+                "load=s",    \$CONFIG{ 'load' },
+                "execute=s", \$CONFIG{ 'execute' },
+                "quiet",     \$CONFIG{ 'quiet' },
+    );
 
     pod2usage(1) if $SHOW_HELP;
-    pod2usage(-verbose => 2 ) if $SHOW_MANUAL;
+    pod2usage( -verbose => 2 ) if $SHOW_MANUAL;
 
-    if ( $SHOW_VERSION )
+    if ($SHOW_VERSION)
     {
         print "asql v$RELEASE\n";
         exit;
     }
 }
-
 
 
 
@@ -482,16 +466,18 @@ sub parseCommandLineArguments
 
 sub sanityCheck
 {
+
     #
     #  Test we have the perl modules we need.
     #
-    BEGIN {
+    BEGIN
+    {
         eval {
             require Term::ReadLine;
             require Term::ReadLine::Gnu;
         };
-    };
-    if ( $@ )
+    }
+    if ($@)
     {
         print "Package 'Term::ReadLine::Gnu' not installed.\n";
         print "Aborting\n";
@@ -500,7 +486,6 @@ sub sanityCheck
     }
 
 }
-
 
 
 
@@ -514,30 +499,30 @@ sub sanityCheck
 
 sub loadAliases
 {
+
     # no file == no aliases
-    return if ( ! -e $CONFIG{'aliases'} );
+    return if ( !-e $CONFIG{ 'aliases' } );
 
     # read the file into this buffer.
     my $aliases = '';
 
-    open( INPUT, "<", $CONFIG{'aliases' } )
+    open( INPUT, "<", $CONFIG{ 'aliases' } )
       or die "Failed to read aliases file $CONFIG{'aliases'} : $!";
 
-    foreach my $line ( <INPUT> )
+    foreach my $line (<INPUT>)
     {
-        $aliases .= $line if ( defined( $line ) );
+        $aliases .= $line if ( defined($line) );
     }
-    close( INPUT );
+    close(INPUT);
 
     #
     #  Evaluate and store any aliases
     #
     my $VAR1 = undef;
-    my $f = eval( $aliases );
-    %ALIASES= %$f if ( $f );
+    my $f    = eval($aliases);
+    %ALIASES = %$f if ($f);
 
 }
-
 
 
 
@@ -551,12 +536,11 @@ sub loadAliases
 
 sub saveAliases
 {
-    open( INPUT, ">", $CONFIG{'aliases' } )
+    open( INPUT, ">", $CONFIG{ 'aliases' } )
       or die "Failed to write aliases file $CONFIG{'aliases'} : $!";
     print INPUT Dumper( \%ALIASES );
-    close( INPUT );
+    close(INPUT);
 }
-
 
 
 
@@ -571,12 +555,12 @@ sub saveAliases
 
 sub runQuery
 {
-    my( $sql ) = ( @_ );
+    my ($sql) = (@_);
 
     #
     #  Make sure we have a database handle
     #
-    my $dbh = $CONFIG{'dbi'};
+    my $dbh = $CONFIG{ 'dbi' };
     if ( !$dbh || !$dbh->ping() )
     {
         print "Database handle closed - trying to reopen!\n";
@@ -591,7 +575,7 @@ sub runQuery
         else
         {
             print "Re-connected\n";
-            $CONFIG{'dbi'} = $dbh;
+            $CONFIG{ 'dbi' } = $dbh;
         }
     }
 
@@ -599,18 +583,20 @@ sub runQuery
     #  Prepare the statement
     #
     my $sth = $dbh->prepare($sql);
-    if  ($sth )
+    if ($sth)
     {
+
         #
         #  Execute it and show the results.
         #
         $sth->execute();
-        print "@$_\n" while  $_ = $sth->fetchrow_arrayref();
+        print "@$_\n" while $_ = $sth->fetchrow_arrayref();
         $sth->finish();
         print "\n";
     }
     else
     {
+
         #
         #  Failed to compile - the user will already see
         # an error, but we'll reiterate it.
@@ -618,7 +604,6 @@ sub runQuery
         print "Failed to compile SQL\n";
     }
 }
-
 
 
 
@@ -632,12 +617,11 @@ sub runQuery
 
 sub showBanner
 {
-    return if ( ( $CONFIG{'quiet'} ) ||
-                ( $CONFIG{'execute'} ) );
+    return if (    ( $CONFIG{ 'quiet' } )
+                || ( $CONFIG{ 'execute' } ) );
 
     print "asql v$RELEASE - type 'help' for help.\n";
 }
-
 
 
 
@@ -672,16 +656,16 @@ sub createTerminal
     #  Add completion
     #
     my $attribs = $term->Attribs;
-    $attribs->{completion_entry_function}     = $attribs->{list_completion_function};
-    $attribs->{completion_word}               = \@cmds;
-    $attribs->{attempted_completion_function} = \&completion;
+    $attribs->{ completion_entry_function } =
+      $attribs->{ list_completion_function };
+    $attribs->{ completion_word }               = \@cmds;
+    $attribs->{ attempted_completion_function } = \&completion;
 
     #
     #  Return it
     #
-    return( $term );
+    return ($term);
 }
-
 
 
 
@@ -698,21 +682,20 @@ sub createTerminal
 
 sub completion
 {
-    my ($text, $line, $start, $end) = @_;
+    my ( $text, $line, $start, $end ) = @_;
 
-    if ((substr($line, 0, $start) =~ /^load([ \t]+)$/i ) ||
-        (substr($line, 0, $start) =~ /^restore([ \t]+)$/i ) )
+    if (    ( substr( $line, 0, $start ) =~ /^load([ \t]+)$/i )
+         || ( substr( $line, 0, $start ) =~ /^restore([ \t]+)$/i ) )
     {
-        return $term->completion_matches($text,
-                                         $attribs->{'filename_completion_function'});
+        return
+          $term->completion_matches( $text,
+                                 $attribs->{ 'filename_completion_function' } );
     }
     else
     {
-        return( grep( /\Q^$text/, keys %dispatch, keys %ALIASES ) );
+        return ( grep( /\Q^$text/, keys %dispatch, keys %ALIASES ) );
     }
 }
-
-
 
 
 
@@ -726,20 +709,21 @@ sub completion
 
 sub loadHistory
 {
-    my ( $term ) = ( @_ );
+    my ($term) = (@_);
 
     #
     #  Load the file, if it exists, from the home directory.
     #
-    my $file = $CONFIG{'history'};
+    my $file = $CONFIG{ 'history' };
     if ( -e $file )
     {
+
         #
         #  Load the history if we can.
         #
         if ( UNIVERSAL::can( $term, 'ReadHistory' ) )
         {
-            $term->ReadHistory( $file );
+            $term->ReadHistory($file);
         }
     }
 }
@@ -756,21 +740,21 @@ sub loadHistory
 
 sub processFile
 {
-    my ( $file ) = ( @_ );
+    my ($file) = (@_);
 
-    if ( ! -e $file )
+    if ( !-e $file )
     {
         print "File not found: $file\n";
         return;
     }
 
-    open( INPUTFILE, "<",  $file )
+    open( INPUTFILE, "<", $file )
       or die "Failed to open $file - $!";
 
-    while(my $line = <INPUTFILE> )
+    while ( my $line = <INPUTFILE> )
     {
-        chomp( $line );
-        processLine( $line ) if (defined($line) && length($line));
+        chomp($line);
+        processLine($line) if ( defined($line) && length($line) );
     }
     close(INPUTFILE);
 }
@@ -794,7 +778,7 @@ sub processFile
 
 sub runMainLoop
 {
-    my ( $term ) = ( @_ );
+    my ($term) = (@_);
 
     #
     #  Prompt
@@ -804,20 +788,21 @@ sub runMainLoop
     #
     #  Command loop.
     #
-    while ( defined (my $line = $term->readline($prompt) ) )
+    while ( defined( my $line = $term->readline($prompt) ) )
     {
+
         # Ignore empty lines.
-        next if ( !length( $line ) );
+        next if ( !length($line) );
 
         # Strip leading and trailing whitespace.
         $line =~ s/^\s+//;
         $line =~ s/\s+$//;
 
         # The line is empty now?
-        next if ( !length( $line ) );
+        next if ( !length($line) );
 
         # actually process the input
-        processLine( $line );
+        processLine($line);
     }
 
     #
@@ -839,52 +824,55 @@ sub runMainLoop
 
 sub processLine
 {
-    my( $line ) = ( @_ );
+    my ($line) = (@_);
 
     # If we have arguments then split them up.
-    my ($word, @args) = split( /[ \t]/, $line );
+    my ( $word, @args ) = split( /[ \t]/, $line );
 
     # make sure we did receive a command
     return if ( !$word );
 
     # Lookup command in our dispatch table.
-    my $cmd = $dispatch{ lc( $word ) };
+    my $cmd = $dispatch{ lc($word) };
 
-    if ( $cmd )
+    if ($cmd)
     {
+
         # Call the function with any arguments we might have.
-        $cmd->{'sub'}->( join( " ", @args ) );
+        $cmd->{ 'sub' }->( join( " ", @args ) );
 
         # Add a successful line to our history, if we can.
         if ( UNIVERSAL::can( $term, 'add_history' ) )
         {
-            $term->add_history( $line );
+            $term->add_history($line);
         }
     }
     else
     {
+
         #
         #  Catch any alias definitions we might have present.
         #
         if ( $ALIASES{ $word } )
         {
+
             #
             #  Call ourself to process the line.
             #
-            processLine( $ALIASES{$word} );
+            processLine( $ALIASES{ $word } );
 
             #
             # Add a successful line to our history, if we can.
             #
             if ( UNIVERSAL::can( $term, 'add_history' ) )
             {
-                $term->add_history( $line );
+                $term->add_history($line);
             }
 
         }
         else
         {
-            if ( defined( $word ) && length( $word ) )
+            if ( defined($word) && length($word) )
             {
                 print "Unknown command: '$word' - type 'help' for help.\n";
             }
@@ -904,9 +892,9 @@ sub processLine
 
 sub do_alias
 {
-    my( $line ) = ( @_ );
+    my ($line) = (@_);
 
-    if ( !defined( $line ) || !length( $line ) )
+    if ( !defined($line) || !length($line) )
     {
         my $count = 0;
         foreach my $name ( keys %ALIASES )
@@ -914,14 +902,14 @@ sub do_alias
             print "ALIAS $name $ALIASES{$name}\n";
             $count += 1;
         }
-        print "No aliases are currently defined.\n" unless( $count );
+        print "No aliases are currently defined.\n" unless ($count);
         return;
     }
 
     #
     #  Define a new one
     #
-    my( $name, @rest ) = split( / /, $line );
+    my ( $name, @rest ) = split( / /, $line );
     my $value = join( " ", @rest );
 
     print "ALIAS $name $value\n";
@@ -929,10 +917,9 @@ sub do_alias
     #
     #  Delete the current alias of that name, if it exists.
     #
-    delete $ALIASES{$name};
-    $ALIASES{$name} = $value if ( defined( $value ) && ( length($value) ) );
+    delete $ALIASES{ $name };
+    $ALIASES{ $name } = $value if ( defined($value) && ( length($value) ) );
 }
-
 
 
 
@@ -946,32 +933,33 @@ sub do_alias
 
 sub do_exit
 {
+
     #
     #  The history file
     #
-    my $file = $CONFIG{'history'};
+    my $file = $CONFIG{ 'history' };
 
     #
     #  Save the history if the term module can.
     #
     if ( UNIVERSAL::can( $term, 'WriteHistory' ) )
     {
-        $term->WriteHistory( $file );
+        $term->WriteHistory($file);
     }
 
     #
     #  Disconnect from the database
     #
-    if ( $CONFIG{'dbi'} &&
-         $CONFIG{'dbi'}->ping() )
+    if (    $CONFIG{ 'dbi' }
+         && $CONFIG{ 'dbi' }->ping() )
     {
-        $CONFIG{'dbi'}->disconnect();
+        $CONFIG{ 'dbi' }->disconnect();
     }
 
     #
     #  Remove it
     #
-    unlink( $DBIFILE ) if ( defined( $DBIFILE ) && ( -e $DBIFILE ) );
+    unlink($DBIFILE) if ( defined($DBIFILE) && ( -e $DBIFILE ) );
 
     #
     #  Save any aliases
@@ -981,8 +969,6 @@ sub do_exit
 
     exit;
 }
-
-
 
 
 
@@ -1001,24 +987,26 @@ sub do_exit
 
 sub do_help
 {
-    my ( $term ) = ( @_ );
+    my ($term) = (@_);
 
     #
     #  Help on a single command
     #
-    if ( ( defined( $term ) ) && ( length( $term ))  )
+    if ( ( defined($term) ) && ( length($term) ) )
     {
         foreach my $cmd ( split( /[ \t]/, $term ) )
         {
+
             # Lookup command in our dispatch table.
-            my $c = $dispatch{ lc( $cmd ) };
-            if ( $c )
+            my $c = $dispatch{ lc($cmd) };
+            if ($c)
             {
+
                 # arguments for the command?
-                my $args = $c->{'args'} || '';
+                my $args = $c->{ 'args' } || '';
 
                 print "\nCommand: $cmd $args\n\n";
-                print $c->{'help'} . "\n";
+                print $c->{ 'help' } . "\n";
             }
             else
             {
@@ -1037,9 +1025,9 @@ sub do_help
     #
     foreach my $entry ( sort keys %dispatch )
     {
-        my $hash = $dispatch{$entry};
+        my $hash = $dispatch{ $entry };
 
-        print sprintf( "%10s - %s\n", $entry, $hash->{'info'} );
+        print sprintf( "%10s - %s\n", $entry, $hash->{ 'info' } );
     }
 
     #
@@ -1048,7 +1036,6 @@ sub do_help
     print "\nFor command-specific help run \"help command\".\n\n";
 
 }
-
 
 
 
@@ -1063,29 +1050,32 @@ sub do_help
 
 sub do_load
 {
-    my( @files ) = ( @_ );
+    my (@files) = (@_);
 
     #
     #  Create the tables if we've not already done so.
     #
-    if ( ! $CONFIG{'loaded'} )
+    if ( !$CONFIG{ 'loaded' } )
     {
+
         #
         # create a database handle
         #
-        $CONFIG{'dbi'} = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+        $CONFIG{ 'dbi' } =
+          DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
 
         #
         #  Delete the table if it already exists.
         #
-        eval
-        {
-            local $CONFIG{'dbi'}->{PrintError} = 0;
-            $CONFIG{'dbi'}->do("DROP TABLE logs");
+        eval {
+            local $CONFIG{ 'dbi' }->{ PrintError } = 0;
+            $CONFIG{ 'dbi' }->do("DROP TABLE logs");
         };
-        $CONFIG{'dbi'}->do( "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, user, label);" );
+        $CONFIG{ 'dbi' }->do(
+"CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, user, label);"
+        );
 
-        $CONFIG{'loaded'} = 1;
+        $CONFIG{ 'loaded' } = 1;
     }
 
     #
@@ -1093,7 +1083,7 @@ sub do_load
     #
     my $label = '';
     my @FILES;
-    foreach my $arg ( @files )
+    foreach my $arg (@files)
     {
         if ( $arg =~ /(.*)([ \t]+)--label=(.*)/ )
         {
@@ -1107,8 +1097,9 @@ sub do_load
     #
     #  Now load each file.
     #
-    foreach my $file ( @FILES )
+    foreach my $file (@FILES)
     {
+
         # skip arguments
         next if ( $file =~ /^--/ );
 
@@ -1119,8 +1110,9 @@ sub do_load
         }
         else
         {
+
             # could be a glob?
-            foreach my $f ( glob( $file ) )
+            foreach my $f ( glob($file) )
             {
                 if ( -e $f )
                 {
@@ -1128,6 +1120,7 @@ sub do_load
                 }
                 else
                 {
+
                     # not found
                     print "Ignoring file which doesn't exist: $file\n";
                 }
@@ -1135,7 +1128,6 @@ sub do_load
         }
     }
 }
-
 
 
 
@@ -1149,11 +1141,12 @@ sub do_load
 
 sub do_restore
 {
-    my( $file ) = ( @_ );
+    my ($file) = (@_);
 
-    $file = $CONFIG{'savedb'} if ( ( !defined( $file ) ) || ( !length( $file ) ) );
+    $file = $CONFIG{ 'savedb' }
+      if ( ( !defined($file) ) || ( !length($file) ) );
 
-    if ( ! -e $file )
+    if ( !-e $file )
     {
         print "The restore file dosen't exist: $file\n";
         return;
@@ -1162,21 +1155,21 @@ sub do_restore
     #
     #  Disconnect
     #
-    if ( $CONFIG{'dbi'} &&
-         $CONFIG{'dbi'}->ping() )
+    if (    $CONFIG{ 'dbi' }
+         && $CONFIG{ 'dbi' }->ping() )
     {
-        $CONFIG{'dbi'}->disconnect();
+        $CONFIG{ 'dbi' }->disconnect();
     }
 
     #
     #  Re-connect
     #
-    $CONFIG{'dbi'} = DBI->connect_cached( "dbi:SQLite:dbname=$file", "", "" );
+    $CONFIG{ 'dbi' } = DBI->connect_cached( "dbi:SQLite:dbname=$file", "", "" );
 
     #
     #  fake a load - so that we may seleect.
     #
-    $CONFIG{'loaded'} += 1;
+    $CONFIG{ 'loaded' } += 1;
 }
 
 
@@ -1191,19 +1184,20 @@ sub do_restore
 
 sub do_save
 {
-    my( $file ) = ( @_ );
+    my ($file) = (@_);
 
-    $file = $CONFIG{'savedb'} if ( ( !defined( $file ) ) || ( !length( $file ) ) );
+    $file = $CONFIG{ 'savedb' }
+      if ( ( !defined($file) ) || ( !length($file) ) );
 
     print "Saving to : $file\n";
 
     #
     #  Disconnect
     #
-    if ( $CONFIG{'dbi'} &&
-         $CONFIG{'dbi'}->ping() )
+    if (    $CONFIG{ 'dbi' }
+         && $CONFIG{ 'dbi' }->ping() )
     {
-        $CONFIG{'dbi'}->disconnect();
+        $CONFIG{ 'dbi' }->disconnect();
     }
 
     #
@@ -1214,7 +1208,8 @@ sub do_save
     #
     #  Reconnect
     #
-    $CONFIG{'dbi'} = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+    $CONFIG{ 'dbi' } =
+      DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
 }
 
 
@@ -1234,13 +1229,13 @@ sub do_save
 
 sub do_sql
 {
-    my( $command, $query )  = (@_);
+    my ( $command, $query ) = (@_);
 
 
     #
     #  Make sure we received a query
     #
-    if ( !length( $query ) )
+    if ( !length($query) )
     {
         print "Missing arguments\n";
         return;
@@ -1249,7 +1244,7 @@ sub do_sql
     #
     #  Make sure we've loaded at least one file.
     #
-    if ( !$CONFIG{'loaded'} )
+    if ( !$CONFIG{ 'loaded' } )
     {
         print "No files loaded yet!\n";
         return;
@@ -1258,8 +1253,6 @@ sub do_sql
 
     runQuery( $command . " " . $query );
 }
-
-
 
 
 
@@ -1306,28 +1299,31 @@ EOF
 
 sub loadFile
 {
-    my( $filename, $label ) = (@_);
+    my ( $filename, $label ) = (@_);
 
     # ensure we received a logfile.
-    die "No filename...." if ( ! defined( $filename ) );
+    die "No filename...." if ( !defined($filename) );
 
     # did we get a label?
-    $label = $filename unless( defined( $label ) );
+    $label = $filename unless ( defined($label) );
 
     # status.
-    print "Loading: $filename\n" unless( $CONFIG{'load'} );
+    print "Loading: $filename\n" unless ( $CONFIG{ 'load' } );
 
     #
     #  Get the database handle and prepare the insertion query.
     #
-    my $dbh = $CONFIG{'dbi'};
-    my $sth = $dbh->prepare( "INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, user, label ) VALUES( ?,?,?,?,?,?,?,?,?,?,? )" );
+    my $dbh = $CONFIG{ 'dbi' };
+    my $sth = $dbh->prepare(
+"INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, user, label ) VALUES( ?,?,?,?,?,?,?,?,?,?,? )"
+    );
 
     #
     #  Open the named logfile, using a pipe for .bz2/.gz files.
     #
     if ( $filename =~ /gz$/i )
     {
+
         #
         # Will fail if there is no zcat installed.
         #
@@ -1336,6 +1332,7 @@ sub loadFile
     }
     elsif ( $filename =~ /bz2$/i )
     {
+
         #
         # Will fail if there is no bzcat installed.
         #
@@ -1344,8 +1341,9 @@ sub loadFile
     }
     else
     {
+
         # Open file normally.
-        open( INPUT, "<",  $filename )
+        open( INPUT, "<", $filename )
           or die "Cannot open file - $filename : $!";
     }
 
@@ -1359,39 +1357,42 @@ sub loadFile
     #
     #  Parse each line in a minimal fashion.
     #
-    foreach my $line ( <INPUT> )
+    foreach my $line (<INPUT>)
     {
+
         #
         #  Parse.
         #
-        my $results = parseApacheLogLine( $line );
+        my $results = parseApacheLogLine($line);
 
         #
         #  Get the results, if they are present.
         #
-        my $host     = $results->{'host'}  || "";
-        my $size     = $results->{'bytes'} || "";
-        my $version  = $results->{'proto'} || "";
-        my $time     = $results->{'time'}  || "";
-        my $date     = $results->{'date'}  || "";
-        my $path     = $results->{'file'}  || "";
-        my $protocol = $results->{'rtype'} || "";
-        my $agent    = $results->{'agent'} || "";
-        my $user     = $results->{'user'}  || "";
-        my $refer    = $results->{'refer'} || "";
-        my $code     = $results->{'code'}  || "";
+        my $host     = $results->{ 'host' }  || "";
+        my $size     = $results->{ 'bytes' } || "";
+        my $version  = $results->{ 'proto' } || "";
+        my $time     = $results->{ 'time' }  || "";
+        my $date     = $results->{ 'date' }  || "";
+        my $path     = $results->{ 'file' }  || "";
+        my $protocol = $results->{ 'rtype' } || "";
+        my $agent    = $results->{ 'agent' } || "";
+        my $user     = $results->{ 'user' }  || "";
+        my $refer    = $results->{ 'refer' } || "";
+        my $code     = $results->{ 'code' }  || "";
 
         if ( $date =~ /^([^\/]+)\/([^\/]+)\/(.*)/ )
         {
+
             #
             #  If cached then use that value..
             #
-            if ( $cache{$date} )
+            if ( $cache{ $date } )
             {
-                $date = $cache{$date};
+                $date = $cache{ $date };
             }
             else
             {
+
                 #
                 #  Otherwise we'll convert manually.
                 #
@@ -1399,16 +1400,16 @@ sub loadFile
                 my $mon  = $2;
                 my $year = $3;
 
-                $mon  = $months{lc($mon)};
+                $mon = $months{ lc($mon) };
 
                 #
                 #  Update cache - and use it.
                 #
-                $cache{$date} = $year . "-" . $mon . "-" . $day;
-                $date = $cache{$date};
+                $cache{ $date } = $year . "-" . $mon . "-" . $day;
+                $date = $cache{ $date };
             }
 
-            $date =  $date . 'T' . $time;
+            $date = $date . 'T' . $time;
         }
 
 
@@ -1420,13 +1421,17 @@ sub loadFile
         #
         #  Insert row.
         #
-        $sth->execute( $host, $path, $code, $size, $protocol, $refer, $agent, $version, $date, $user, $label );
+        $sth->execute(
+                       $host,     $path,  $code,  $size,
+                       $protocol, $refer, $agent, $version,
+                       $date,     $user,  $label
+        );
     }
 
     #
     #  All done
     #
-    close( INPUT );
+    close(INPUT);
     $sth->finish();
 }
 
@@ -1446,26 +1451,35 @@ sub loadFile
 
 sub parseApacheLogLine
 {
-    my $Line=shift;
+    my $Line = shift;
     my $Ref;
     my $Rest;
     my $R2;
-    ($Ref->{host},$Ref->{user},$Ref->{date},$Rest)= $Line=~m,^([^\s]+)\s+-\s+([^ ]+)\s+\[(.*?)\]\s+(.*),;
-    my @Dsplit=split(/\s+/,$Ref->{date});
-    $Ref->{diffgmt}=$Dsplit[1];
-    my @Ds2=split(/\:/,$Dsplit[0],2);
-    $Ref->{date}=$Ds2[0];
-    $Ref->{time}=$Ds2[1];
+    ( $Ref->{ host }, $Ref->{ user }, $Ref->{ date }, $Rest ) =
+      $Line =~ m,^([^\s]+)\s+-\s+([^ ]+)\s+\[(.*?)\]\s+(.*),;
+    my @Dsplit = split( /\s+/, $Ref->{ date } );
+    $Ref->{ diffgmt } = $Dsplit[1];
+    my @Ds2 = split( /\:/, $Dsplit[0], 2 );
+    $Ref->{ date } = $Ds2[0];
+    $Ref->{ time } = $Ds2[1];
+
     if ($Rest)
     {
-        ($Ref->{rtype},$Ref->{file},$Ref->{proto},$Ref->{code},$Ref->{bytes},$R2)=split(/\s/,$Rest,6);
-        $Ref->{rtype}=~tr/\"//d;
-        $Ref->{proto}=~tr/\"//d;
+        (
+           $Ref->{ rtype },
+           $Ref->{ file },
+           $Ref->{ proto },
+           $Ref->{ code },
+           $Ref->{ bytes },
+           $R2
+        ) = split( /\s/, $Rest, 6 );
+        $Ref->{ rtype } =~ tr/\"//d;
+        $Ref->{ proto } =~ tr/\"//d;
         if ($R2)
         {
-            my @Split=split(/\"/,$R2);
-            $Ref->{refer}=$Split[1];
-            $Ref->{agent}=$Split[3];
+            my @Split = split( /\"/, $R2 );
+            $Ref->{ refer } = $Split[1];
+            $Ref->{ agent } = $Split[3];
         }
     }
     return $Ref;
@@ -1476,11 +1490,10 @@ sub parseApacheLogLine
 #
 #  Print a newline or two on termination, just to make things prettier.
 #
-END {
+END
+{
     print "\n\n";
 }
-
-
 
 
 
