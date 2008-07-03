@@ -17,6 +17,11 @@ asql - Provide an SQL interface to Apache logfiles.
    --manual     Show more complete help.
    --version    Show the version of the software.
 
+  Scripting Options:
+
+   --load       Load the named file, or glob.
+   --execute    Execute a single query then exit.
+
   Options:
 
    --file       Rather than running as a shell read commands from a named file.
@@ -40,6 +45,8 @@ asql - Provide an SQL interface to Apache logfiles.
 
 =item Command history
 
+=item Simple scriptability
+
 =back
 
 =cut
@@ -47,9 +54,9 @@ asql - Provide an SQL interface to Apache logfiles.
 
 =head1 INTRODUCTION
 
-  The shell will create a temporary SQLite database based upon
+  The asql shell will create a temporary SQLite database based upon
  any number of Apache logfiles.  This temporary database may then
- be interactively queried using the common SQL syntax.
+ be interactively queried using common SQL syntax.
 
   To get started you should load your logfiles into the database:
 
@@ -72,8 +79,8 @@ asql - Provide an SQL interface to Apache logfiles.
 
 =for example end
 
-  This example shows all the clients connected to your machine
- and the size of files in total that they have downloaded.
+  This example shows all the clients connecting to your webserver
+ and the size of files/requests that they have downloaded in total.
 
   As you can see we've selected two columns "source" and "SUM(size)".
  To see which other columns are available you may execute the "show"
@@ -97,6 +104,7 @@ asql - Provide an SQL interface to Apache logfiles.
 
  All aliases will be read and written to the file ~/.asql.aliases.
 
+ All interactive history will be written to the file ~/.asql.
 
 =cut
 
@@ -377,21 +385,39 @@ if ( -e $CONFIG{'startup'} )
 }
 
 
+#
+#  Load data?
+#
+if ( $CONFIG{'load'} )
+{
+    do_load( $CONFIG{'load'} );
+}
 
 #
-#  Run our command loop.
+#  Execute directly?
 #
-if ( !$CONFIG{'file'} )
+if ( $CONFIG{'execute'} )
 {
-    #  NOTE: this never returns.
-    runMainLoop( $term );
+    processLine( $CONFIG{'execute'} );
+    exit;
 }
-else
+
+#
+#  Run the contents of a named file?
+#
+if ( $CONFIG{'file'} )
 {
     # Run the scripted file, and save our history.
     processFile( $CONFIG{'file'} );
     do_exit();
 }
+
+
+#
+#  OK interactive usage.
+#  NOTE: this never returns.
+#
+runMainLoop( $term );
 
 
 
@@ -428,6 +454,8 @@ sub parseCommandLineArguments
                "manual",   \$SHOW_MANUAL,
                "version",  \$SHOW_VERSION,
                "file=s",   \$CONFIG{'file'},
+               "load=s",   \$CONFIG{'load'},
+               "execute=s",\$CONFIG{'execute'},
                "quiet",    \$CONFIG{'quiet'},
              );
 
@@ -604,7 +632,8 @@ sub runQuery
 
 sub showBanner
 {
-    return if ( $CONFIG{'quiet'} );
+    return if ( ( $CONFIG{'quiet'} ) ||
+                ( $CONFIG{'execute'} ) );
 
     print "asql v$RELEASE - type 'help' for help.\n";
 }
@@ -1286,7 +1315,7 @@ sub loadFile
     $label = $filename unless( defined( $label ) );
 
     # status.
-    print "Loading: $filename\n";
+    print "Loading: $filename\n" unless( $CONFIG{'load'} );
 
     #
     #  Get the database handle and prepare the insertion query.
