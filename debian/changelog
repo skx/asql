@@ -2,7 +2,8 @@ asql (0.9-1) unstable; urgency=low
 
   * New upstream release:
     - Adds support for the --execute flag.
-    - Updated standards version to 3.8.0.  (No changes).
+    - Updated standards version to 3.8.0.
+      * Updated copyright file to be correct.
 
  -- Steve Kemp <skx@debian.org>  Fri, 4 Jul 2008 12:55:21 +0000
 

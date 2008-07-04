@@ -1,11 +1,25 @@
-Created by <steve@steve.org.uk> on Tue Nove 27 11:24:26 GMT 2006
 
-It was downloaded from www.steve.org.uk
+This package was debianized by Steve Kemp <steve@steve.org.uk> on
+Tuesday, 27th November 2006.
 
-Upstream Author: Steve Kemp <steve@steve.org.uk
+It was downloaded from http://xen-tools.org/software/rinse/
 
-The software is licensed under the terms of the GNU Public License,
-and the current maintainer of the Debian Package is the author.
+Copyright 2007-2008 Steve Kemp <steve@steve.org.uk>
 
-The complete text of the GNU General Public License can be found
-in /usr/share/common-licenses/GPL file.
+License:
+
+This program is free software, you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+Perl is distributed under licenses:
+
+    a) the GNU General Public License as published by the Free Software
+       Foundation; either version 1, or (at your option) any later
+       version, or
+
+    b) the "Artistic License" which comes with Perl.
+
+    On Debian GNU/Linux systems, the complete text of the GNU General
+    Public License can be found in /usr/share/common-licenses/GPL' and
+    the Artistic Licence in /usr/share/common-licenses/Artistic'.
+
