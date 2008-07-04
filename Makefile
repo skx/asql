@@ -2,7 +2,7 @@
 #  Makefile for 'asql'.
 #
 # Steve
-# -- 
+# --
 #
 
 
@@ -10,7 +10,7 @@
 #  Only used to build distribution tarballs.
 #
 DIST_PREFIX = ${TMP}
-VERSION     = 0.8
+VERSION     = 0.9
 BASE        = asql
 
 
