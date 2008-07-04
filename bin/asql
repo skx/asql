@@ -142,9 +142,9 @@ use Pod::Usage;
 
 
 #
-#  Release number of this script.
+#  Release number of this script: set by "make release".
 #
-my $RELEASE = '0.8';
+my $RELEASE = 'UNRELEASED';
 
 
 #
