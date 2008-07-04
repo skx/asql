@@ -30,6 +30,7 @@ stubb:
 clean:
 	-find . -name '*~' -delete
 	-find . -name 'build-stamp' -delete
+	-rm bin/*.bak
 
 
 commands:
