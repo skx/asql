@@ -300,7 +300,7 @@ $months{ 'aug' } = 8;
 $months{ 'sep' } = 9;
 $months{ 'oct' } = 10;
 $months{ 'nov' } = 11;
-$months{ 'dec' } = 11;
+$months{ 'dec' } = 12;
 
 ####
 #
