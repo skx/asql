@@ -1,3 +1,10 @@
+asql (1.0-1) unstable; urgency=low
+
+  * New upstream release:
+    - Correctly identifies December in dates.  (Long story.)
+
+ -- Steve Kemp <skx@debian.org>  Tue, 21 Oct 2008 18:55:18 +0000
+
 asql (0.9-1) unstable; urgency=low
 
   * New upstream release:
