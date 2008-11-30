@@ -349,21 +349,6 @@ $SIG{ INT } = "do_exit";
 
 
 #
-#  Create the readline interface, and save the attributes away
-# so that we may use them in our command completion code.
-#
-my $term    = createTerminal();
-my $attribs = $term->Attribs;
-
-
-
-#
-#  Load any command history which might be present.
-#
-loadHistory($term);
-
-
-#
 #  If the user has a startup-file then load that prior to running
 # any interactive/scripted session.
 #
@@ -404,6 +389,22 @@ if ( $CONFIG{ 'file' } )
 
 #
 #  OK interactive usage.
+#
+
+#  Create the readline interface, and save the attributes away
+# so that we may use them in our command completion code.
+#
+my $term    = createTerminal();
+my $attribs = $term->Attribs;
+
+
+
+#
+#  Load any command history which might be present.
+#
+loadHistory($term);
+
+
 #  NOTE: this never returns.
 #
 runMainLoop($term);
