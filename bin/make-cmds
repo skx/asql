@@ -15,8 +15,8 @@
 #  We are called with a single argument - the path to 'asql'.
 #
 my $file = shift;
-die "No file"                unless( defined( $file ) );
-die "File not found - $file" unless( -e $file );
+die "No file" unless ( defined($file) );
+die "File not found - $file" unless ( -e $file );
 
 
 
@@ -24,17 +24,17 @@ die "File not found - $file" unless( -e $file );
 #  Read the text
 #
 my $text = '';
-my $in = 0;
+my $in   = 0;
 
-open( INPUT, "<", $file )
-  or die "Failed to open $file -$!";
-foreach my $line ( <INPUT> )
+open( INPUT, "<", $file ) or
+  die "Failed to open $file -$!";
+foreach my $line (<INPUT>)
 {
     next if ( !$line );
-    chomp( $line );
+    chomp($line);
     next if ( !$line );
 
-    if ( $in )
+    if ($in)
     {
         if ( $line =~ /END_COMMAND_TABLE/ )
         {
@@ -53,7 +53,7 @@ foreach my $line ( <INPUT> )
         }
     }
 }
-close( INPUT );
+close(INPUT);
 
 
 
@@ -72,8 +72,8 @@ eval $text;
 foreach my $key ( sort keys %dispatch )
 {
     my $cmd   = $key;
-    my $under = "-" x length( $key );
-    my $text  = $dispatch{$key}->{'help'};
+    my $under = "-" x length($key);
+    my $text  = $dispatch{ $key }->{ 'help' };
 
     print <<EOF;
 $cmd

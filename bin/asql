@@ -197,56 +197,54 @@ my %dispatch = (
         sub  => \&do_alias,
         args => "[name sql...]",
         help =>
-"Define a persistent alias, or list those aliases currently defined.\n\nIf no arguments are given all current aliases, as loaded from the\nalias file are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
+          "Define a persistent alias, or list those aliases currently defined.\n\nIf no arguments are given all current aliases, as loaded from the\nalias file are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
         info => "Define, or view, persistent aliases.",
     },
     "alter" => {
         sub => sub {my ($args) = (@_); do_sql( "alter", $args );},
         help => "Run an ALTER query against the database.\n",
         info => "Run an ALTER query against the database.",
-    },
+               },
     "create" => {
         sub => sub {my ($args) = (@_); do_sql( "create", $args );},
         help => "Run a CREATE query against the database.\n",
         info => "Run a CREATE query against the database.",
-    },
+                },
     "delete" => {
         sub => sub {my ($args) = (@_); do_sql( "delete", $args );},
         help => "Run a DELETE query against the database.\n",
         info => "Run a DELETE query against the database.",
-    },
+                },
     "drop" => {
         sub => sub {my ($args) = (@_); do_sql( "drop", $args );},
         help => "Run a DROP query against the database.\n",
         info => "Run a DROP query against the database.",
-    },
+              },
     "insert" => {
         sub => sub {my ($args) = (@_); do_sql( "insert", $args );},
         help => "Run an INSERT query against the database.\n",
         info => "Run an INSERT query against the database.",
-    },
+                },
     "load" => {
         sub  => \&do_load,
         args => "[file|glob] [--label=name",
         help =>
-"Load an Apache logfile into the currently open table.\n\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be automtically decompressed and loaded.\n\nTo save time parsing the logfile(s) specified you may save the database once\nit has been populated via 'save' and 'restore'.",
+          "Load an Apache logfile into the currently open table.\n\nYou may either specify a single file, or a glob pattern.\n\nFiles with a .gz, or .bz2 suffix will be automtically decompressed and loaded.\n\nTo save time parsing the logfile(s) specified you may save the database once\nit has been populated via 'save' and 'restore'.",
         info => "Load an Apache logfile.",
     },
-    "exit" => {
-                sub  => \&do_exit,
+    "exit" => { sub  => \&do_exit,
                 help => "Exit the shell.",
                 info => "Exit the shell.",
-    },
+              },
     "help" => {
         sub  => \&do_help,
         args => "[command]",
         help =>
-"If a command is given then show help about that command.\n\nIf no command is specified give an overview of all available commands.\n",
+          "If a command is given then show help about that command.\n\nIf no command is specified give an overview of all available commands.\n",
         info => "Show general, or command-specific, help information.",
     },
     "quit" =>    # Dupe: exit
-      {
-        sub  => \&do_exit,
+      { sub  => \&do_exit,
         help => "Exit this shell.",
         info => "Exit this shell.",
       },
@@ -254,33 +252,32 @@ my %dispatch = (
         sub  => \&do_restore,
         args => '[filename]',
         help =>
-"Load a SQLite database which was previously saved via 'save'.\n\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
+          "Load a SQLite database which was previously saved via 'save'.\n\nThis immediately makes any previously saved records available, without the need to reload the logile(s).\n",
         info => "Load a previously save'd temporary database.",
     },
     "save" => {
         sub  => \&do_save,
         args => '[filename]',
         help =>
-"Save the temporary SQLite database which was create at startup time.\n\nThis means you won't need to wait for the relatively slow logfile parsing\nat startup.  Use the 'restore' command to reload this database in the future.",
+          "Save the temporary SQLite database which was create at startup time.\n\nThis means you won't need to wait for the relatively slow logfile parsing\nat startup.  Use the 'restore' command to reload this database in the future.",
         info => "Save the temporary database.",
     },
     "select" => {
         sub => sub {my ($args) = (@_); do_sql( "select", $args );},
         help =>
-"Run a SELECT query against the database.\nExample queries\n\n  SELECT distinct(source) FROM logs\n\nSELECT referer,COUNT(referer) AS number from logs GROUP BY referer ORDER BY number DESC,referer\n\netc.",
+          "Run a SELECT query against the database.\nExample queries\n\n  SELECT distinct(source) FROM logs\n\nSELECT referer,COUNT(referer) AS number from logs GROUP BY referer ORDER BY number DESC,referer\n\netc.",
         info => "Run a SELECT query against the database.",
     },
-    "show" => {
-                sub  => \&do_show,
+    "show" => { sub  => \&do_show,
                 help => "Show the structure of the database.",
                 info => "Show the structure of the database.",
-    },
+              },
     "update" => {
         sub => sub {my ($args) = (@_); do_sql( "update", $args );},
         help => "Run an UPDATE query against the database.\n",
         info => "Run an UPDATE query against the database.",
-    },
-);
+                },
+               );
 
 #
 #  END_COMMAND_TABLE
@@ -437,16 +434,14 @@ sub parseCommandLineArguments
     #
     exit
       if (
-           !GetOptions(
-                        "help",      \$SHOW_HELP,
+           !GetOptions( "help",      \$SHOW_HELP,
                         "manual",    \$SHOW_MANUAL,
                         "version",   \$SHOW_VERSION,
                         "file=s",    \$CONFIG{ 'file' },
                         "load=s",    \$CONFIG{ 'load' },
                         "execute=s", \$CONFIG{ 'execute' },
                         "quiet",     \$CONFIG{ 'quiet' },
-           )
-      );
+                      ) );
 
     pod2usage(1) if $SHOW_HELP;
     pod2usage( -verbose => 2 ) if $SHOW_MANUAL;
@@ -510,8 +505,8 @@ sub loadAliases
     # read the file into this buffer.
     my $aliases = '';
 
-    open( INPUT, "<", $CONFIG{ 'aliases' } )
-      or die "Failed to read aliases file $CONFIG{'aliases'} : $!";
+    open( INPUT, "<", $CONFIG{ 'aliases' } ) or
+      die "Failed to read aliases file $CONFIG{'aliases'} : $!";
 
     foreach my $line (<INPUT>)
     {
@@ -540,8 +535,8 @@ sub loadAliases
 
 sub saveAliases
 {
-    open( INPUT, ">", $CONFIG{ 'aliases' } )
-      or die "Failed to write aliases file $CONFIG{'aliases'} : $!";
+    open( INPUT, ">", $CONFIG{ 'aliases' } ) or
+      die "Failed to write aliases file $CONFIG{'aliases'} : $!";
     print INPUT Dumper( \%ALIASES );
     close(INPUT);
 }
@@ -621,8 +616,8 @@ sub runQuery
 
 sub showBanner
 {
-    return if (    ( $CONFIG{ 'quiet' } )
-                || ( $CONFIG{ 'execute' } ) );
+    return if ( ( $CONFIG{ 'quiet' } ) ||
+                ( $CONFIG{ 'execute' } ) );
 
     print "asql v$RELEASE - type 'help' for help.\n";
 }
@@ -688,8 +683,8 @@ sub completion
 {
     my ( $text, $line, $start, $end ) = @_;
 
-    if (    ( substr( $line, 0, $start ) =~ /^load([ \t]+)$/i )
-         || ( substr( $line, 0, $start ) =~ /^restore([ \t]+)$/i ) )
+    if ( ( substr( $line, 0, $start ) =~ /^load([ \t]+)$/i ) ||
+         ( substr( $line, 0, $start ) =~ /^restore([ \t]+)$/i ) )
     {
         return
           $term->completion_matches( $text,
@@ -752,8 +747,8 @@ sub processFile
         return;
     }
 
-    open( INPUTFILE, "<", $file )
-      or die "Failed to open $file - $!";
+    open( INPUTFILE, "<", $file ) or
+      die "Failed to open $file - $!";
 
     while ( my $line = <INPUTFILE> )
     {
@@ -954,8 +949,8 @@ sub do_exit
     #
     #  Disconnect from the database
     #
-    if (    $CONFIG{ 'dbi' }
-         && $CONFIG{ 'dbi' }->ping() )
+    if ( $CONFIG{ 'dbi' } &&
+         $CONFIG{ 'dbi' }->ping() )
     {
         $CONFIG{ 'dbi' }->disconnect();
     }
@@ -1076,7 +1071,7 @@ sub do_load
             $CONFIG{ 'dbi' }->do("DROP TABLE logs");
         };
         $CONFIG{ 'dbi' }->do(
-"CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, user, label);"
+            "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, user, label);"
         );
 
         $CONFIG{ 'loaded' } = 1;
@@ -1159,8 +1154,8 @@ sub do_restore
     #
     #  Disconnect
     #
-    if (    $CONFIG{ 'dbi' }
-         && $CONFIG{ 'dbi' }->ping() )
+    if ( $CONFIG{ 'dbi' } &&
+         $CONFIG{ 'dbi' }->ping() )
     {
         $CONFIG{ 'dbi' }->disconnect();
     }
@@ -1198,8 +1193,8 @@ sub do_save
     #
     #  Disconnect
     #
-    if (    $CONFIG{ 'dbi' }
-         && $CONFIG{ 'dbi' }->ping() )
+    if ( $CONFIG{ 'dbi' } &&
+         $CONFIG{ 'dbi' }->ping() )
     {
         $CONFIG{ 'dbi' }->disconnect();
     }
@@ -1319,7 +1314,7 @@ sub loadFile
     #
     my $dbh = $CONFIG{ 'dbi' };
     my $sth = $dbh->prepare(
-"INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, user, label ) VALUES( ?,?,?,?,?,?,?,?,?,?,? )"
+        "INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, user, label ) VALUES( ?,?,?,?,?,?,?,?,?,?,? )"
     );
 
     #
@@ -1331,8 +1326,8 @@ sub loadFile
         #
         # Will fail if there is no zcat installed.
         #
-        open( INPUT, "zcat $filename|" )
-          or die "Cannot read piped file - $filename : $! ";
+        open( INPUT, "zcat $filename|" ) or
+          die "Cannot read piped file - $filename : $! ";
     }
     elsif ( $filename =~ /bz2$/i )
     {
@@ -1340,15 +1335,15 @@ sub loadFile
         #
         # Will fail if there is no bzcat installed.
         #
-        open( INPUT, "bzcat $filename|" )
-          or die "Cannot read piped file - $filename : $! ";
+        open( INPUT, "bzcat $filename|" ) or
+          die "Cannot read piped file - $filename : $! ";
     }
     else
     {
 
         # Open file normally.
-        open( INPUT, "<", $filename )
-          or die "Cannot open file - $filename : $!";
+        open( INPUT, "<", $filename ) or
+          die "Cannot open file - $filename : $!";
     }
 
 
@@ -1425,11 +1420,10 @@ sub loadFile
         #
         #  Insert row.
         #
-        $sth->execute(
-                       $host,     $path,  $code,  $size,
+        $sth->execute( $host,     $path,  $code,  $size,
                        $protocol, $refer, $agent, $version,
                        $date,     $user,  $label
-        );
+                     );
     }
 
     #
@@ -1469,8 +1463,7 @@ sub parseApacheLogLine
 
     if ($Rest)
     {
-        (
-           $Ref->{ rtype },
+        (  $Ref->{ rtype },
            $Ref->{ file },
            $Ref->{ proto },
            $Ref->{ code },
@@ -1496,7 +1489,7 @@ sub parseApacheLogLine
 #
 END
 {
-    print "\n\n" unless( $CONFIG{'execute'} );
+    print "\n\n" unless ( $CONFIG{ 'execute' } );
 }
 
 
