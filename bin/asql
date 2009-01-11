@@ -1071,7 +1071,7 @@ sub do_load
             $CONFIG{ 'dbi' }->do("DROP TABLE logs");
         };
         $CONFIG{ 'dbi' }->do(
-            "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status, size, method, referer, agent, version, date, user, label);"
+            "CREATE TABLE logs (id INTEGER PRIMARY KEY, source, request, status integer, size integer, method, referer, agent, version integer, date, user, label);"
         );
 
         $CONFIG{ 'loaded' } = 1;
