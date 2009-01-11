@@ -57,6 +57,7 @@ release: clean commands
 	mv $(DIST_PREFIX)/$(BASE)-$(VERSION).tar.gz .
 	rm -rf $(DIST_PREFIX)/$(BASE)-$(VERSION)
 	gpg --armour --detach-sign $(BASE)-$(VERSION).tar.gz
+	echo $(VERSION) > .version
 
 test:
 	prove --shuffle t/

@@ -4,7 +4,7 @@
 #   http://release.repository.steve.org.uk/
 #
 # Steve
-# -- 
+# --
 #
 
 
@@ -20,6 +20,11 @@ preupload="make release"
 #  Pattern for our release tarball.
 #
 pattern=asql-[0-9].[0-9].tar.gz*
+
+#
+#  Version number
+#
+version=.version
 
 
 #
