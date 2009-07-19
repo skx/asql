@@ -2,14 +2,14 @@ Source: asql
 Section: admin
 Priority: optional
 Maintainer: Steve Kemp <skx@debian.org>
-Build-Depends: debhelper (>> 4.0.0)
-Standards-Version: 3.8.0
+Build-Depends: debhelper (>> 5.0.0)
+Standards-Version: 3.8.2
 
 Package: asql
 Architecture: all
 Depends: ${misc:Depends}, libdbd-sqlite3-perl, libterm-readline-gnu-perl
 Description: Run SQL queries against apache logs
  This package contains a simple tool which allows you to easily run
- SQL queries against apache common logfiles.
+ SQL queries against Apache common logfiles.
  .
  This can be more illuminating than viewing static logfile analysis.

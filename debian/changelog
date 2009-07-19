@@ -1,3 +1,13 @@
+asql (1.2-2) unstable; urgency=low
+
+  * Rename the name of the table shown in the help text as that was
+    confusing.  (Closes: #537500)
+  * Bumped standards version to 3.8.2 - changed spelling of 'apache' to
+    'Apache' in package description.
+  * Bumped debhelper level to 5, and updated dependency
+
+ -- Steve Kemp <skx@debian.org>  Sun, 19 Jul 2009 11:27:06 +0000
+
 asql (1.2-1) unstable; urgency=low
 
   * New upstream release:
