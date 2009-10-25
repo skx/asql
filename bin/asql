@@ -564,7 +564,8 @@ sub runQuery
     {
         print "Database handle closed - trying to reopen!\n";
 
-        $dbh = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+        $dbh = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "",
+                                    { AutoCommit => 0 } );
 
         if ( !$dbh )
         {
@@ -1061,7 +1062,8 @@ sub do_load
         # create a database handle
         #
         $CONFIG{ 'dbi' } =
-          DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+          DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "",
+                               { AutoCommit => 0 } );
 
         #
         #  Delete the table if it already exists.
@@ -1163,7 +1165,8 @@ sub do_restore
     #
     #  Re-connect
     #
-    $CONFIG{ 'dbi' } = DBI->connect_cached( "dbi:SQLite:dbname=$file", "", "" );
+    $CONFIG{ 'dbi' } = DBI->connect_cached( "dbi:SQLite:dbname=$file", "", "",
+                                            { AutoCommit => 0 } );
 
     #
     #  fake a load - so that we may seleect.
@@ -1208,7 +1211,8 @@ sub do_save
     #  Reconnect
     #
     $CONFIG{ 'dbi' } =
-      DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "" );
+      DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "",
+                           { AutoCommit => 0 } );
 }
 
 
