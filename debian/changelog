@@ -1,3 +1,10 @@
+asql (1.3-1) unstable; urgency=low
+
+  * Disable AutoCommit to speedup loading of data.
+    - Thanks to David Wolever for the suggestion.
+
+ -- Steve Kemp <skx@debian.org>  Sun, 25 Oct 2009 18:11:18 +0000
+
 asql (1.2-2) unstable; urgency=low
 
   * Rename the name of the table shown in the help text as that was
