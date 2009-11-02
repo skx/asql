@@ -565,7 +565,7 @@ sub runQuery
         print "Database handle closed - trying to reopen!\n";
 
         $dbh = DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "",
-                                    { AutoCommit => 0 } );
+                                    { AutoCommit => 1 } );
 
         if ( !$dbh )
         {
@@ -1063,7 +1063,7 @@ sub do_load
         #
         $CONFIG{ 'dbi' } =
           DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "",
-                               { AutoCommit => 0 } );
+                               { AutoCommit => 1 } );
 
         #
         #  Delete the table if it already exists.
@@ -1166,7 +1166,7 @@ sub do_restore
     #  Re-connect
     #
     $CONFIG{ 'dbi' } = DBI->connect_cached( "dbi:SQLite:dbname=$file", "", "",
-                                            { AutoCommit => 0 } );
+                                            { AutoCommit => 1 } );
 
     #
     #  fake a load - so that we may seleect.
@@ -1212,7 +1212,7 @@ sub do_save
     #
     $CONFIG{ 'dbi' } =
       DBI->connect_cached( "dbi:SQLite:dbname=$DBIFILE", "", "",
-                           { AutoCommit => 0 } );
+                           { AutoCommit => 1 } );
 }
 
 
@@ -1317,6 +1317,16 @@ sub loadFile
     #  Get the database handle and prepare the insertion query.
     #
     my $dbh = $CONFIG{ 'dbi' };
+
+    #
+    #  Begin a transaction.
+    #
+    $dbh->begin_work() or die "Failed to begin transaction: " . $DBI::errstr;
+
+
+    #
+    #  Prepare the insertion statement.
+    #
     my $sth = $dbh->prepare(
         "INSERT INTO logs( source, request, status, size, method, referer, agent, version, date, user, label ) VALUES( ?,?,?,?,?,?,?,?,?,?,? )"
     );
@@ -1355,7 +1365,6 @@ sub loadFile
     #  Cache of parsed dates + times.
     #
     my %cache;
-
 
     #
     #  Parse each line in a minimal fashion.
@@ -1435,6 +1444,8 @@ sub loadFile
     #
     close(INPUT);
     $sth->finish();
+    $dbh->commit() or die $DBI::errstr;
+
 }
 
 
