@@ -36,5 +36,5 @@ signature=asql-[0-9].[0-9].tar.gz.asc
 #
 #  Upload location.
 #
-upload=steve@www.steve.org.uk:/home/www/www.steve.org.uk/htdocs/Software/asql
+upload=s-steve@www.steve.org.uk:htdocs/Software/asql
 
