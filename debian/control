@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: Steve Kemp <skx@debian.org>
 Build-Depends: debhelper (>> 5.0.0)
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 Homepage: http://www.steve.org.uk/Software/asql/
 
 
