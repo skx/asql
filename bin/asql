@@ -197,7 +197,7 @@ my %dispatch = (
         sub  => \&do_alias,
         args => "[name sql...]",
         help =>
-          "Define a persistent alias, or list those aliases currently defined.\n\nIf no arguments are given all current aliases, as loaded from the\nalias file are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agents) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
+          "Define a persistent alias, or list those aliases currently defined.\n\nIf no arguments are given all current aliases, as loaded from the\nalias file are displayed.\n\nAliases persist by default and may be created by running something\nlike this:\n\n  alias agents SELECT distinct(agent) FROM logs\n\nOnce this has been entered the new command 'agents' will run the given\nquery.\n\nTo remove the alias run:\n\n  alias agents\n\n",
         info => "Define, or view, persistent aliases.",
     },
     "alter" => {
