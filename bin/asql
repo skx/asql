@@ -1461,7 +1461,7 @@ we can work with.
 
 sub parseApacheLogLine
 {
-    my ( $line ) = (@_);
+    my ($line) = (@_);
 
     my $pat_ip_address = qr/(\d{1,3} \.
         \d{1,3} \.
@@ -1494,15 +1494,15 @@ sub parseApacheLogLine
     #
     if ( $line =~ /$parse_combined/ )
     {
-        $ref->{'host'}    = $1;
-        $ref->{'ident'}   = $2;
-        $ref->{'user'}    = $3;
-        $ref->{'date'}    = $4;
-        $ref->{'file'}    = $5;
-        $ref->{'code'}    = $6;
-        $ref->{'bytes'}   = $7;
-        $ref->{'agent'}   = $9;
-        $ref->{'referer'} = $8;
+        $ref->{ 'host' }    = $1;
+        $ref->{ 'ident' }   = $2;
+        $ref->{ 'user' }    = $3;
+        $ref->{ 'date' }    = $4;
+        $ref->{ 'file' }    = $5;
+        $ref->{ 'code' }    = $6;
+        $ref->{ 'bytes' }   = $7;
+        $ref->{ 'agent' }   = $9;
+        $ref->{ 'referer' } = $8;
 
         my @Dsplit = split( /\s+/, $ref->{ date } );
         $ref->{ diffgmt } = $Dsplit[1];
@@ -1510,16 +1510,16 @@ sub parseApacheLogLine
         $ref->{ date } = $Ds2[0];
         $ref->{ time } = $Ds2[1];
 
-        if ( $ref->{'file'} =~ /^([A-Z]+) (.*) HTTP\/([0-9.]+)$/ )
+        if ( $ref->{ 'file' } =~ /^([A-Z]+) (.*) HTTP\/([0-9.]+)$/ )
         {
-            $ref->{'method'} = $1;
-            $ref->{'file'} = $2;
-            $ref->{'version'} = $3;
+            $ref->{ 'method' }  = $1;
+            $ref->{ 'file' }    = $2;
+            $ref->{ 'version' } = $3;
         }
         else
         {
-            $ref->{'method'} = "UNKNOWN";
-            $ref->{'version'} = "0.0";
+            $ref->{ 'method' }  = "UNKNOWN";
+            $ref->{ 'version' } = "0.0";
         }
     }
 
