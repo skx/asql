@@ -1417,7 +1417,7 @@ sub loadFile
                 #
                 #  Update cache - and use it.
                 #
-                $cache{ $date } = $year . "-" . $mon . "-" . $day;
+                $cache{ $date } = sprintf("%d-%02d-%02d", $year, $mon, $day);
                 $date = $cache{ $date };
             }
 

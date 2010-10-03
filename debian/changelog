@@ -1,3 +1,10 @@
+asql (1.6-1) unstable; urgency=low
+
+  * Applied Patch from Christopher Brannon for two-digit month and
+    days.
+
+ -- Unreleased
+
 asql (1.5-1) unstable; urgency=low
 
   * Switch to dpkg-source 3.0 (quilt) format
