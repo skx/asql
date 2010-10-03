@@ -826,6 +826,9 @@ sub processLine
 {
     my ($line) = (@_);
 
+    # strip trailing space & ";" characters.
+    $line =~ s/([ \t;]+)$//g;
+
     # If we have arguments then split them up.
     my ( $word, @args ) = split( /[ \t]/, $line );
 
