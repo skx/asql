@@ -1505,7 +1505,7 @@ sub parseApacheLogLine
         $ref->{ 'code' }    = $6;
         $ref->{ 'bytes' }   = $7;
         $ref->{ 'agent' }   = $9;
-        $ref->{ 'referer' } = $8;
+        $ref->{ 'refer' }   = $8;
 
         my @Dsplit = split( /\s+/, $ref->{ date } );
         $ref->{ diffgmt } = $Dsplit[1];
