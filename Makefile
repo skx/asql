@@ -10,7 +10,7 @@
 #  Only used to build distribution tarballs.
 #
 DIST_PREFIX = ${TMP}
-VERSION     = 1.5
+VERSION     = 1.6
 BASE        = asql
 
 
