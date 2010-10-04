@@ -2,8 +2,10 @@ asql (1.6-1) unstable; urgency=low
 
   * Applied Patch from Christopher Brannon for two-digit month and
     days.
+  * Updated the way that Apache logfiles are parsed, such that malformed
+    lines will be safely ignored.  (Closes: #597114)
 
- -- Unreleased
+ -- Steve Kemp <skx@debian.org>  Mon, 4 Oct 2010 21:22:23 +0000
 
 asql (1.5-1) unstable; urgency=low
 
