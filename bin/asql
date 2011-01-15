@@ -1477,7 +1477,7 @@ sub parseApacheLogLine
         (?:\\.*)                         # ...or a backslash escape.
        ))*))"/x;
 
-    my $parse_combined = qr/^       # Start at the beginning
+    my $parse_combined = qr/^ \s*       # Start at the beginning
          $pat_ip_address \s+        # IP address
          (\S+) \s+                  # Ident
          (\S+) \s+                  # Userid
@@ -1486,7 +1486,7 @@ sub parseApacheLogLine
          (\d+) \s+                  # Status
          (\-|[\d]+) \s+             # Length of reply or "-"
          $pat_quoted_field \s+      # Referer
-         $pat_quoted_field          # User agent
+         $pat_quoted_field \s*          # User agent
          $                          # End at the end
        /x;
 
