@@ -139,6 +139,7 @@ use Getopt::Long;
 use File::Copy qw/copy/;
 use File::Temp qw/tempfile/;
 use Pod::Usage;
+use Regexp::IPv6;
 
 
 #
@@ -1466,10 +1467,11 @@ sub parseApacheLogLine
 {
     my ($line) = (@_);
 
-    my $pat_ip_address = qr/(\d{1,3} \.
+    my $pat_ipv4_address = qr/\d{1,3} \.
         \d{1,3} \.
         \d{1,3} \.
-        \d{1,3})/x;
+        \d{1,3}/x;
+    my $pat_ip_address = qr/($pat_ipv4_address | $Regexp::IPv6::IPv6_re)/x;
 
     my $pat_quoted_field = qr/"((?:(?:(?:(?:    # It can be...
         [^"\\])* |  # ...zero or more characters not quote or backslash...
