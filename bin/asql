@@ -1386,7 +1386,7 @@ sub loadFile
         #
         my $host     = $results->{ 'host' }  || "";
         my $size     = $results->{ 'bytes' } || "";
-        my $version  = $results->{ 'proto' } || "";
+        my $version  = $results->{ 'version' } || "";
         my $time     = $results->{ 'time' }  || "";
         my $date     = $results->{ 'date' }  || "";
         my $path     = $results->{ 'file' }  || "";
