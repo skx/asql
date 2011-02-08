@@ -3,6 +3,8 @@ asql (xxx) unstable; urgency=low
   * Applied two further patches from Christopher Brannon:
     - Fixed HTTP version.
     - Recognise IPv6 addresses.
+  * Avoid adding new rows to our temporary database if we fail to
+    parse any lines of input.
 
  -- Steve Kemp <skx@debian.org>  Mon, 4 Oct 2010 21:22:23 +0000
 
