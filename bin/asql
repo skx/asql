@@ -1382,6 +1382,20 @@ sub loadFile
         my $results = parseApacheLogLine($line);
 
         #
+        #  Warn on parse-failure if we're being verbose.
+        #
+        if ( $CONFIG{'verbose'} && !defined($results ) )
+        {
+            print "WARNING: Failed to parse line\n";
+        }
+
+        #
+        #  Skip insertion of a new row if we failed to parse.
+        #
+        next if ( !$results );
+
+
+        #
         #  Get the results, if they are present.
         #
         my $host     = $results->{ 'host' }  || "";
@@ -1526,6 +1540,11 @@ sub parseApacheLogLine
             $ref->{ 'method' }  = "UNKNOWN";
             $ref->{ 'version' } = "0.0";
         }
+    }
+    else
+    {
+        # failed to parse...
+        return undef;
     }
 
     return $ref;
