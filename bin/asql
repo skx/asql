@@ -1384,7 +1384,7 @@ sub loadFile
         #
         #  Warn on parse-failure if we're being verbose.
         #
-        if ( $CONFIG{'verbose'} && !defined($results ) )
+        if ( $CONFIG{ 'verbose' } && !defined($results) )
         {
             print "WARNING: Failed to parse line\n";
         }
@@ -1398,17 +1398,17 @@ sub loadFile
         #
         #  Get the results, if they are present.
         #
-        my $host     = $results->{ 'host' }  || "";
-        my $size     = $results->{ 'bytes' } || "";
+        my $host     = $results->{ 'host' }    || "";
+        my $size     = $results->{ 'bytes' }   || "";
         my $version  = $results->{ 'version' } || "";
-        my $time     = $results->{ 'time' }  || "";
-        my $date     = $results->{ 'date' }  || "";
-        my $path     = $results->{ 'file' }  || "";
-        my $protocol = $results->{ 'rtype' } || "";
-        my $agent    = $results->{ 'agent' } || "";
-        my $user     = $results->{ 'user' }  || "";
-        my $refer    = $results->{ 'refer' } || "";
-        my $code     = $results->{ 'code' }  || "";
+        my $time     = $results->{ 'time' }    || "";
+        my $date     = $results->{ 'date' }    || "";
+        my $path     = $results->{ 'file' }    || "";
+        my $protocol = $results->{ 'rtype' }   || "";
+        my $agent    = $results->{ 'agent' }   || "";
+        my $user     = $results->{ 'user' }    || "";
+        my $refer    = $results->{ 'refer' }   || "";
+        my $code     = $results->{ 'code' }    || "";
 
         if ( $date =~ /^([^\/]+)\/([^\/]+)\/(.*)/ )
         {
@@ -1513,15 +1513,15 @@ sub parseApacheLogLine
     #
     if ( $line =~ /$parse_combined/ )
     {
-        $ref->{ 'host' }    = $1;
-        $ref->{ 'ident' }   = $2;
-        $ref->{ 'user' }    = $3;
-        $ref->{ 'date' }    = $4;
-        $ref->{ 'file' }    = $5;
-        $ref->{ 'code' }    = $6;
-        $ref->{ 'bytes' }   = $7;
-        $ref->{ 'agent' }   = $9;
-        $ref->{ 'refer' }   = $8;
+        $ref->{ 'host' }  = $1;
+        $ref->{ 'ident' } = $2;
+        $ref->{ 'user' }  = $3;
+        $ref->{ 'date' }  = $4;
+        $ref->{ 'file' }  = $5;
+        $ref->{ 'code' }  = $6;
+        $ref->{ 'bytes' } = $7;
+        $ref->{ 'agent' } = $9;
+        $ref->{ 'refer' } = $8;
 
         my @Dsplit = split( /\s+/, $ref->{ date } );
         $ref->{ diffgmt } = $Dsplit[1];
@@ -1543,6 +1543,7 @@ sub parseApacheLogLine
     }
     else
     {
+
         # failed to parse...
         return undef;
     }
