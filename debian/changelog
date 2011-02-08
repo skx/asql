@@ -1,3 +1,11 @@
+asql (xxx) unstable; urgency=low
+
+  * Applied two further patches from Christopher Brannon:
+    - Fixed HTTP version.
+    - Recognise IPv6 addresses.
+
+ -- Steve Kemp <skx@debian.org>  Mon, 4 Oct 2010 21:22:23 +0000
+
 asql (1.6-1) unstable; urgency=low
 
   * Applied Patch from Christopher Brannon for two-digit month and
