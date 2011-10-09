@@ -1274,7 +1274,7 @@ sub do_show
 {
     print <<EOF;
 
-   The table 'log' table has the following columns:
+   The 'logs' table has the following columns:
 
   id      - ID of the request
   source  - IP, or hostname, which made the request.
