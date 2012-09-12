@@ -860,9 +860,27 @@ sub processLine
         {
 
             #
+            #  OK we have an expansion
+            #
+            my $cmd = $ALIASES{ $word };
+
+            while ( $cmd =~ /(.*)\$([0-9]+)(.*)/ )
+            {
+                my $pre   = $1;
+                my $subst = $2;
+                my $post  = $3;
+
+                if ( (@args) && $args[$subst - 1] )
+                {
+                    $subst = $args[$subst - 1];
+                }
+                $cmd = $pre . $subst . $post;
+            }
+
+            #
             #  Call ourself to process the line.
             #
-            processLine( $ALIASES{ $word } );
+            processLine($cmd);
 
             #
             # Add a successful line to our history, if we can.
