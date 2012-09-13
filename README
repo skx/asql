@@ -23,7 +23,7 @@ Aliases
 -------
 
   Using the 'alias' command you may record and replay previous
- queries by name.
+ queries by name, along with variable expansion.
 
   For example the following query will show the number of hits
  against your server:
@@ -35,6 +35,18 @@ Aliases
    ALIAS hits SELECT COUNT(id) FROM logs;
 
   Now at any future point entering 'hits' would run the query.
+
+  If you wish you can use variables in aliases such as:
+
+    ALIAS hitsagent SELECT * FROM logs where agent like '%$1%';
+
+  The text $1 will be replaced by the first argument you supply to
+ the alias when running it:
+
+   hitsagent mozilla
+   hitsagent wget
+
+  You can use variables from $1 to $9.
 
   (Aliases persist between sessions via the file ~/.asql.aliases.)
 
