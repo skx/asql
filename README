@@ -44,7 +44,7 @@ Aliases
  the alias when running it:
 
    hitsagent mozilla
-   hitsagent wget
+   hitsagent Slurp
 
   You can use variables from $1 to $9.
 
