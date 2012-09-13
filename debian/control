@@ -1,9 +1,9 @@
 Source: asql
 Section: admin
 Priority: optional
-Maintainer: Steve Kemp <skx@debian.org>
+Maintainer: Steve Kemp <steve@steve.org.uk>
 Build-Depends: debhelper (>> 5.0.0)
-Standards-Version: 3.8.4
+Standards-Version: 3.9.1
 Homepage: http://www.steve.org.uk/Software/asql/
 
 

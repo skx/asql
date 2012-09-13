@@ -1,12 +1,13 @@
-asql (xxx) unstable; urgency=low
+asql (1.7-1) unstable; urgency=low
 
   * Applied two further patches from Christopher Brannon:
     - Fixed HTTP version.
     - Recognise IPv6 addresses.
   * Avoid adding new rows to our temporary database if we fail to
     parse any lines of input.
+  * Allow variable expansion in aliases.
 
- -- Steve Kemp <skx@debian.org>  Mon, 4 Oct 2010 21:22:23 +0000
+ -- Steve Kemp <steve@steve.org.uk>  Thu, 13 Sep 2012 08:33:08 +0000
 
 asql (1.6-1) unstable; urgency=low
 
