@@ -2,7 +2,7 @@ Homepage:
     http://www.steve.org.uk/Software/asql/
 
 Git Repository:
-    http://hg.steve.org.uk/skx/asql
+    http://git.steve.org.uk/skx/asql
 
 
 asql
