@@ -1420,8 +1420,8 @@ sub loadFile
         my $version  = $results->{ 'version' } || "";
         my $time     = $results->{ 'time' }    || "";
         my $date     = $results->{ 'date' }    || "";
+        my $method   = $results->{ 'method' }  || "";
         my $path     = $results->{ 'file' }    || "";
-        my $protocol = $results->{ 'rtype' }   || "";
         my $agent    = $results->{ 'agent' }   || "";
         my $user     = $results->{ 'user' }    || "";
         my $refer    = $results->{ 'refer' }   || "";
@@ -1471,9 +1471,9 @@ sub loadFile
         #
         #  Insert row.
         #
-        $sth->execute( $host,     $path,  $code,  $size,
-                       $protocol, $refer, $agent, $version,
-                       $date,     $user,  $label
+        $sth->execute( $host,   $path,  $code,  $size,
+                       $method, $refer, $agent, $version,
+                       $date,   $user,  $label
                      );
     }
 
