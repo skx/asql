@@ -73,5 +73,12 @@ See who has downloaded me:
 
       select * FROM logs WHERE request='/etch/pool/main/a/asql/asql_0.6-1_all.deb';
 
+
+Dependencies
+------------
+
+For parsing IPv6 log entries the Regexp::IPv6 module is required.
+
+
 Steve
 --
