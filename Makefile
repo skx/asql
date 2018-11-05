@@ -18,26 +18,19 @@ BASE        = asql
 stubb:
 	@echo "Valid targets are"
 	@echo " "
-	@echo " clean   - Remove temporary files"
+	@echo " clean    - Remove temporary files"
 	@echo " commands - Make our command reference."
-	@echo " diff    - See differences from the remote repository"
-	@echo " install - Install the scripts into /etc"
-	@echo " release - Build a tarball"
-	@echo " update  - Update from the repository"
+	@echo " install  - Install the scripts into /etc"
+	@echo " release  - Build a tarball"
 	@echo " "
-
 
 clean:
 	-find . -name '*~' -delete
 	-find . -name 'build-stamp' -delete
 	-rm bin/*.bak
 
-
 commands:
 	perl ./bin/make-cmds ./bin/asql > ./COMMANDS
-
-diff:
-	hg diff 2>/dev/null
 
 install:
 	mkdir -p ${PREFIX}/usr/bin/
@@ -64,6 +57,3 @@ test:
 
 test-verbose:
 	prove --verbose --shuffle t/
-
-update:
-	hg pull --update 2>/dev/null
