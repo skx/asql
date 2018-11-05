@@ -29,7 +29,7 @@ sub checkFile
     my $file = $File::Find::name;
 
     # We don't care about directories
-    return if ( ! -f $file );
+    return if ( !-f $file );
 
     # Nor about backup files.
     return if ( $file =~ /~$/ );
@@ -37,13 +37,16 @@ sub checkFile
     # Nor about files which start with ./debian/
     return if ( $file =~ /^\.\/debian\// );
 
+    # Ignore .git files
+    return if ( $file =~ /\.git\// );
+
     # See if it is a shell/perl file.
     my $isShell = 0;
     my $isPerl  = 0;
 
     # Read the file.
     open( INPUT, "<", $file );
-    foreach my $line ( <INPUT> )
+    foreach my $line (<INPUT>)
     {
         if ( ( $line =~ /\/bin\/sh/ ) ||
              ( $line =~ /\/bin\/bash/ ) )
@@ -55,7 +58,7 @@ sub checkFile
             $isPerl = 1;
         }
     }
-    close( INPUT );
+    close(INPUT);
 
     #
     #  We don't care about files which are neither perl nor shell.
@@ -65,7 +68,7 @@ sub checkFile
         #
         #  Count TAB characters
         #
-        my $count = countTabCharacters( $file );
+        my $count = countTabCharacters($file);
 
         is( $count, 0, "Script has no tab characters: $file" );
     }
@@ -79,21 +82,21 @@ sub checkFile
 #
 sub countTabCharacters
 {
-    my ( $file ) = (@_);
+    my ($file) = (@_);
     my $count = 0;
 
-    open( FILE, "<", $file )
-      or die "Cannot open $file - $!";
-    foreach my $line ( <FILE> )
+    open( FILE, "<", $file ) or
+      die "Cannot open $file - $!";
+    foreach my $line (<FILE>)
     {
         # We will count multiple tab characters in a single line.
-        while( $line =~ /(.*)\t(.*)/ )
+        while ( $line =~ /(.*)\t(.*)/ )
         {
             $count += 1;
             $line = $1 . $2;
         }
     }
-    close( FILE );
+    close(FILE);
 
-    return( $count );
+    return ($count);
 }

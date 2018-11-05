@@ -32,7 +32,10 @@ sub checkFile
     my $file = $File::Find::name;
 
     # We don't care about directories
-    return if ( ! -f $file );
+    return if ( !-f $file );
+
+    # We don't care git-files
+    return if ( $file =~ /\.git\// );
 
     # `modules.sh` is a false positive.
     return if ( $file =~ /modules.sh$/ );
@@ -42,19 +45,19 @@ sub checkFile
 
     # Read the file.
     open( INPUT, "<", $file );
-    foreach my $line ( <INPUT> )
+    foreach my $line (<INPUT>)
     {
         if ( $line =~ /\/usr\/bin\/perl/ )
         {
             $isPerl = 1;
         }
     }
-    close( INPUT );
+    close(INPUT);
 
     #
     #  Return if it wasn't a perl file.
     #
-    return if ( ! $isPerl );
+    return if ( !$isPerl );
 
     #
     #  Now run 'perl -c $file' to see if we pass the syntax
@@ -64,7 +67,8 @@ sub checkFile
     #        use strict "vars";
     #        use strict "subs";
     #
-    my $retval = system( "perl -Mstrict=subs -Mstrict=vars -c $file 2>/dev/null >/dev/null" );
+    my $retval = system(
+            "perl -Mstrict=subs -Mstrict=vars -c $file 2>/dev/null >/dev/null");
 
     is( $retval, 0, "Perl file passes our syntax check: $file" );
 }
