@@ -1,4 +1,3 @@
-syntax: glob
 build-stamp
 debian/asql
 debian/asql/*
