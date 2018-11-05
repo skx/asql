@@ -1,5 +1,8 @@
+COMMANDS
 build-stamp
+debian/.debhelper/
 debian/asql
+debian/asql.debhelper.log
+debian/asql.substvars
 debian/asql/*
 debian/files
-COMMANDS
