@@ -2,7 +2,7 @@ Homepage:
     http://www.steve.org.uk/Software/asql/
 
 Git Repository:
-    http://git.steve.org.uk/skx/asql
+    http://github.com/skx/asql/
 
 
 asql
@@ -77,7 +77,7 @@ See who has downloaded me:
 Dependencies
 ------------
 
-For parsing IPv6 log entries the Regexp::IPv6 module is required.
+For parsing IPv6 log entries the `Regexp::IPv6` module is required.
 
 
 Steve
