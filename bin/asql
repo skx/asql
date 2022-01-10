@@ -1528,6 +1528,8 @@ sub parseApacheLogLine
     else
     {
 
+        no warnings 'once';
+
         #
         #  Both available
         #
