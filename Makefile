@@ -14,6 +14,7 @@ VERSION     = 1.7
 BASE        = asql
 
 
+.PHONY: test
 
 stubb:
 	@echo "Valid targets are"
@@ -51,6 +52,8 @@ release: clean commands
 	rm -rf $(DIST_PREFIX)/$(BASE)-$(VERSION)
 	gpg --armour --detach-sign $(BASE)-$(VERSION).tar.gz
 	echo $(VERSION) > .version
+
+check: test
 
 test:
 	prove --shuffle t/
