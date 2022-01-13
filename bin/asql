@@ -1544,14 +1544,17 @@ sub parseApacheLogLine
 
     my $parse_combined = qr/^ \s*       # Start at the beginning
          $pat_ip_address \s+        # IP address
-         (\S+) \s+                  # Ident
-         (\S+) \s+                  # Userid
+         (\-|\S+) \s+               # Ident or "-"
+         (\-|\S+) \s+               # Userid or "-"
          \[([^\]]*)\] \s+           # Date and time
          $pat_quoted_field \s+      # Request
          (\d+) \s+                  # Status
          (\-|[\d]+) \s+             # Length of reply or "-"
          $pat_quoted_field \s+      # Referer
-         $pat_quoted_field \s*          # User agent
+         $pat_quoted_field \s*      # User agent
+#         (\S+) \s+                  # Server name
+#         $pat_ip_address \s*        # Server IP address
+         (.)*                       # Extra trailing fields
          $                          # End at the end
        /x;
 
@@ -1572,11 +1575,11 @@ sub parseApacheLogLine
         $ref->{ 'agent' } = $9;
         $ref->{ 'refer' } = $8;
 
-        my @Dsplit = split( /\s+/, $ref->{ date } );
-        $ref->{ diffgmt } = $Dsplit[1];
+        my @Dsplit = split( /\s+/, $ref->{ 'date' } );
+        $ref->{ 'diffgmt' } = $Dsplit[1];
         my @Ds2 = split( /\:/, $Dsplit[0], 2 );
-        $ref->{ date } = $Ds2[0];
-        $ref->{ time } = $Ds2[1];
+        $ref->{ 'date' } = $Ds2[0];
+        $ref->{ 'time' } = $Ds2[1];
 
         if ( $ref->{ 'file' } =~ /^([A-Z]+) (.*) HTTP\/([0-9.]+)$/ )
         {
